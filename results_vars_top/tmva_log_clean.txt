@@ -1,0 +1,248 @@
+DataSetInfo              : [dataset] : Added class "Signal"
+                         : Add Tree final_tree of type Signal with 9783 events
+DataSetInfo              : [dataset] : Added class "Background"
+                         : Add Tree final_tree of type Background with 489081 events
+                         : Dataset[dataset] : Class index : 0  name : Signal
+                         : Dataset[dataset] : Class index : 1  name : Background
+Factory                  : Booking method: [1mPyKeras[0m
+                         : 
+PyKeras                  : [dataset] : Create Transformation "D" with events from all classes.
+                         : 
+                         : Transformation, Variable selection : 
+                         : Input : variable 'C_Hnl_vertex_2DSig_BS' <---> Output : variable 'C_Hnl_vertex_2DSig_BS'
+                         : Input : variable 'C_Hnl_vertex_cos2D' <---> Output : variable 'C_Hnl_vertex_cos2D'
+                         : Input : variable 'C_pi_BS_ip_xy' <---> Output : variable 'C_pi_BS_ip_xy'
+                         : Input : variable 'C_Ds_vertex_2DSig_BS' <---> Output : variable 'C_Ds_vertex_2DSig_BS'
+PyKeras                  : [dataset] : Create Transformation "G" with events from all classes.
+                         : 
+                         : Transformation, Variable selection : 
+                         : Input : variable 'C_Hnl_vertex_2DSig_BS' <---> Output : variable 'C_Hnl_vertex_2DSig_BS'
+                         : Input : variable 'C_Hnl_vertex_cos2D' <---> Output : variable 'C_Hnl_vertex_cos2D'
+                         : Input : variable 'C_pi_BS_ip_xy' <---> Output : variable 'C_pi_BS_ip_xy'
+                         : Input : variable 'C_Ds_vertex_2DSig_BS' <---> Output : variable 'C_Ds_vertex_2DSig_BS'
+                         : Setting up tf.keras
+                         : Using TensorFlow version 2
+                         : Use Keras version from TensorFlow : tf.keras
+                         :  Loading Keras Model 
+                         : Loaded model from file: TMVA_keras_models/keras_shallow_model_old_TMVA.h5
+Factory                  : [1mTrain all methods[0m
+                         : Rebuilding Dataset dataset
+                         : Building event vectors for type 2 Signal
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Building event vectors for type 2 Background
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+                         : Dataset[dataset] :  create input formulas for tree final_tree
+DataSetFactory           : [dataset] : Number of events in input trees
+                         : 
+                         : 
+                         : Dataset[dataset] : Weight renormalisation mode: "EqualNumEvents": renormalises all event classes ...
+                         : Dataset[dataset] :  such that the effective (weighted) number of events in each class is the same 
+                         : Dataset[dataset] :  (and equals the number of events (entries) given for class=0 )
+                         : Dataset[dataset] : ... i.e. such that Sum[i=1..N_j]{w_i} = N_classA, j=classA, classB, ...
+                         : Dataset[dataset] : ... (note that N_j is the sum of TRAINING events
+                         : Dataset[dataset] :  ..... Testing events are not renormalised nor included in the renormalisation factor!)
+                         : Number of training and testing events
+                         : ---------------------------------------------------------------------------
+                         : Signal     -- training events            : 7827
+                         : Signal     -- testing events             : 1956
+                         : Signal     -- training and testing events: 9783
+                         : Background -- training events            : 391265
+                         : Background -- testing events             : 97816
+                         : Background -- training and testing events: 489081
+                         : 
+DataSetInfo              : Correlation matrix (Signal):
+                         : --------------------------------------------------------------------------------------------------
+                         :                        C_Hnl_vertex_2DSig_BS C_Hnl_vertex_cos2D C_pi_BS_ip_xy C_Ds_vertex_2DSig_BS
+                         : C_Hnl_vertex_2DSig_BS:                +1.000             +0.039        +0.189               -0.034
+                         :    C_Hnl_vertex_cos2D:                +0.039             +1.000        +0.036               +0.001
+                         :         C_pi_BS_ip_xy:                +0.189             +0.036        +1.000               -0.122
+                         :  C_Ds_vertex_2DSig_BS:                -0.034             +0.001        -0.122               +1.000
+                         : --------------------------------------------------------------------------------------------------
+DataSetInfo              : Correlation matrix (Background):
+                         : --------------------------------------------------------------------------------------------------
+                         :                        C_Hnl_vertex_2DSig_BS C_Hnl_vertex_cos2D C_pi_BS_ip_xy C_Ds_vertex_2DSig_BS
+                         : C_Hnl_vertex_2DSig_BS:                +1.000             +0.214        +0.066               +0.478
+                         :    C_Hnl_vertex_cos2D:                +0.214             +1.000        +0.003               +0.181
+                         :         C_pi_BS_ip_xy:                +0.066             +0.003        +1.000               +0.049
+                         :  C_Ds_vertex_2DSig_BS:                +0.478             +0.181        +0.049               +1.000
+                         : --------------------------------------------------------------------------------------------------
+DataSetFactory           : [dataset] :  
+                         : 
+Factory                  : [dataset] : Create Transformation "D" with events from all classes.
+                         : 
+                         : Transformation, Variable selection : 
+                         : Input : variable 'C_Hnl_vertex_2DSig_BS' <---> Output : variable 'C_Hnl_vertex_2DSig_BS'
+                         : Input : variable 'C_Hnl_vertex_cos2D' <---> Output : variable 'C_Hnl_vertex_cos2D'
+                         : Input : variable 'C_pi_BS_ip_xy' <---> Output : variable 'C_pi_BS_ip_xy'
+                         : Input : variable 'C_Ds_vertex_2DSig_BS' <---> Output : variable 'C_Ds_vertex_2DSig_BS'
+Factory                  : [dataset] : Create Transformation "G" with events from all classes.
+                         : 
+                         : Transformation, Variable selection : 
+                         : Input : variable 'C_Hnl_vertex_2DSig_BS' <---> Output : variable 'C_Hnl_vertex_2DSig_BS'
+                         : Input : variable 'C_Hnl_vertex_cos2D' <---> Output : variable 'C_Hnl_vertex_cos2D'
+                         : Input : variable 'C_pi_BS_ip_xy' <---> Output : variable 'C_pi_BS_ip_xy'
+                         : Input : variable 'C_Ds_vertex_2DSig_BS' <---> Output : variable 'C_Ds_vertex_2DSig_BS'
+                         : Preparing the Decorrelation transformation...
+                         : Preparing the Gaussian transformation...
+TFHandler_Factory        :              Variable                     Mean                     RMS             [        Min                     Max ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : C_Hnl_vertex_2DSig_BS:               0.012060                0.97596   [                -3.2904                 5.7307 ]
+                         :    C_Hnl_vertex_cos2D:              0.0054665                0.99893   [                -3.2914                 5.7307 ]
+                         :         C_pi_BS_ip_xy:             0.00048505                0.98998   [                -3.3989                 5.7307 ]
+                         :  C_Ds_vertex_2DSig_BS:              0.0047030                0.99764   [                -3.2682                 5.7307 ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+Factory                  : Train method: PyKeras for Classification
+                         : 
+                         : 
+                         : [1m================================================================[0m
+                         : [1mH e l p   f o r   M V A   m e t h o d   [ PyKeras ] :[0m
+                         : 
+                         : Keras is a high-level API for the Theano and Tensorflow packages.
+                         : This method wraps the training and predictions steps of the Keras
+                         : Python package for TMVA, so that dataloading, preprocessing and
+                         : evaluation can be done within the TMVA system. To use this Keras
+                         : interface, you have to generate a model with Keras first. Then,
+                         : this model can be loaded and trained in TMVA.
+                         : 
+                         : 
+                         : <Suppress this message by specifying "!H" in the booking option>
+                         : [1m================================================================[0m
+                         : 
+                         : Preparing the Decorrelation transformation...
+                         : Preparing the Gaussian transformation...
+TFHandler_PyKeras        :              Variable                     Mean                     RMS             [        Min                     Max ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : C_Hnl_vertex_2DSig_BS:               0.012060                0.97596   [                -3.2904                 5.7307 ]
+                         :    C_Hnl_vertex_cos2D:              0.0054665                0.99893   [                -3.2914                 5.7307 ]
+                         :         C_pi_BS_ip_xy:             0.00048505                0.98998   [                -3.3989                 5.7307 ]
+                         :  C_Ds_vertex_2DSig_BS:              0.0047030                0.99764   [                -3.2682                 5.7307 ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+TFHandler_PyKeras        :              Variable                     Mean                     RMS             [        Min                     Max ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : C_Hnl_vertex_2DSig_BS:               0.012060                0.97596   [                -3.2904                 5.7307 ]
+                         :    C_Hnl_vertex_cos2D:              0.0054665                0.99893   [                -3.2914                 5.7307 ]
+                         :         C_pi_BS_ip_xy:             0.00048505                0.98998   [                -3.3989                 5.7307 ]
+                         :  C_Ds_vertex_2DSig_BS:              0.0047030                0.99764   [                -3.2682                 5.7307 ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : Split TMVA training data in 319274 training events and 79818 validation events
+                         : Training Model Summary
+running TMVA for signal mN1p0_ctau10
+keras_par_string: H:!V:VarTransform=D,G:FilenameModel=TMVA_keras_models/keras_shallow_model_old_TMVA.h5:FilenameTrainedModel=TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5:NumEpochs=5:BatchSize=64:Verbose=1
+dealing with signal mN1p0_ctau10
+signal file name: /home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p0_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree_new.root
+factory_string: !V:!Silent:Color:DrawProgressBar:Transformations=D,G:AnalysisType=Classification
+Model: "sequential_1"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ normalization_1 (Normalizat  (None, 4)                9         
+ ion)                                                            
+                                                                 
+ dense_2 (Dense)             (None, 64)                320       
+                                                                 
+ dense_3 (Dense)             (None, 2)                 130       
+                                                                 
+=================================================================
+Total params: 459
+Trainable params: 450
+Non-trainable params: 9
+_________________________________________________________________
+                         : Option SaveBestOnly: Only model weights with smallest validation loss will be stored
+Epoch 1/5
+Epoch 1: val_loss improved from inf to 0.00580, saving model to TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5
+4989/4989 [==============================] - 20s 4ms/step - loss: 0.0064 - accuracy: 0.9411 - val_loss: 0.0058 - val_accuracy: 0.9463
+Epoch 2/5
+Epoch 2: val_loss improved from 0.00580 to 0.00578, saving model to TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5
+4989/4989 [==============================] - 6s 1ms/step - loss: 0.0055 - accuracy: 0.9479 - val_loss: 0.0058 - val_accuracy: 0.9451
+Epoch 3/5
+Epoch 3: val_loss improved from 0.00578 to 0.00573, saving model to TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5
+4989/4989 [==============================] - 6s 1ms/step - loss: 0.0054 - accuracy: 0.9480 - val_loss: 0.0057 - val_accuracy: 0.9476
+Epoch 4/5
+Epoch 4: val_loss did not improve from 0.00573
+4989/4989 [==============================] - 6s 1ms/step - loss: 0.0054 - accuracy: 0.9474 - val_loss: 0.0058 - val_accuracy: 0.9454
+Epoch 5/5
+Epoch 5: val_loss did not improve from 0.00573
+4989/4989 [==============================] - 6s 1ms/step - loss: 0.0054 - accuracy: 0.9481 - val_loss: 0.0058 - val_accuracy: 0.9447
+                         : Getting training history for item:0 name = 'loss'
+                         : Getting training history for item:1 name = 'accuracy'
+                         : Getting training history for item:2 name = 'val_loss'
+                         : Getting training history for item:3 name = 'val_accuracy'
+                         : Elapsed time for training with 399092 events: [1;31m98.7 sec[0m         
+                         : Setting up tf.keras
+                         : Using TensorFlow version 2
+                         : Use Keras version from TensorFlow : tf.keras
+                         : Disabled TF eager execution when evaluating model 
+                         :  Loading Keras Model 
+                         : Loaded model from file: TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5
+PyKeras                  : [dataset] : Evaluation of PyKeras on training sample (399092 events)
+                         : Elapsed time for evaluation of 399092 events: [1;31m3.24 sec[0m       
+                         : Creating xml weight file: [0;36mdataset/weights/TMVAClassification_PyKeras.weights.xml[0m
+                         : Creating standalone class: [0;36mdataset/weights/TMVAClassification_PyKeras.class.C[0m
+Factory                  : Training finished
+                         : 
+                         : Ranking input variables (method specific)...
+                         : No variable ranking supplied by classifier: PyKeras
+TH1.Print Name  = TrainingHistory_PyKeras_'accuracy', Entries= 0, Total sum= 4.73238
+TH1.Print Name  = TrainingHistory_PyKeras_'loss', Entries= 0, Total sum= 0.0280632
+TH1.Print Name  = TrainingHistory_PyKeras_'val_accuracy', Entries= 0, Total sum= 4.72907
+TH1.Print Name  = TrainingHistory_PyKeras_'val_loss', Entries= 0, Total sum= 0.0288407
+Factory                  : === Destroy and recreate all methods via weight files for testing ===
+                         : 
+                         : Reading weight file: [0;36mdataset/weights/TMVAClassification_PyKeras.weights.xml[0m
+Factory                  : [1mTest all methods[0m
+Factory                  : Test method: PyKeras for Classification performance
+                         : 
+                         : Setting up tf.keras
+                         : Using TensorFlow version 2
+                         : Use Keras version from TensorFlow : tf.keras
+                         : Disabled TF eager execution when evaluating model 
+                         :  Loading Keras Model 
+                         : Loaded model from file: TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5
+PyKeras                  : [dataset] : Evaluation of PyKeras on testing sample (99772 events)
+                         : Elapsed time for evaluation of 99772 events: [1;31m0.889 sec[0m       
+Factory                  : [1mEvaluate all methods[0m
+Factory                  : Evaluate classifier: PyKeras
+                         : 
+TFHandler_PyKeras        :              Variable                     Mean                     RMS             [        Min                     Max ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : C_Hnl_vertex_2DSig_BS:                0.21920                0.96232   [                -3.3619                 5.7307 ]
+                         :    C_Hnl_vertex_cos2D:              0.0043939                0.92004   [                -3.4027                 5.7307 ]
+                         :         C_pi_BS_ip_xy:                0.11167                 1.0133   [                -3.1827                 5.7307 ]
+                         :  C_Ds_vertex_2DSig_BS:              -0.022814                0.98951   [                -3.2454                 5.7307 ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+PyKeras                  : [dataset] : Loop over test events and fill histograms with classifier response...
+                         : 
+TFHandler_PyKeras        :              Variable                     Mean                     RMS             [        Min                     Max ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : C_Hnl_vertex_2DSig_BS:                0.21920                0.96232   [                -3.3619                 5.7307 ]
+                         :    C_Hnl_vertex_cos2D:              0.0043939                0.92004   [                -3.4027                 5.7307 ]
+                         :         C_pi_BS_ip_xy:                0.11167                 1.0133   [                -3.1827                 5.7307 ]
+                         :  C_Ds_vertex_2DSig_BS:              -0.022814                0.98951   [                -3.2454                 5.7307 ]
+                         : ----------------------------------------------------------------------------------------------------------------------------
+                         : 
+                         : Evaluation results ranked by best signal efficiency and purity (area)
+                         : -------------------------------------------------------------------------------------------------------------------
+                         : DataSet       MVA                       
+                         : Name:         Method:          ROC-integ
+                         : dataset       PyKeras        : 0.989
+                         : -------------------------------------------------------------------------------------------------------------------
+                         : 
+                         : Testing efficiency compared to training efficiency (overtraining check)
+                         : -------------------------------------------------------------------------------------------------------------------
+                         : DataSet              MVA              Signal efficiency: from test sample (from training sample) 
+                         : Name:                Method:          @B=0.01             @B=0.10            @B=0.30   
+                         : -------------------------------------------------------------------------------------------------------------------
+                         : dataset              PyKeras        : 0.847 (0.846)       0.976 (0.976)      0.995 (0.995)
+                         : -------------------------------------------------------------------------------------------------------------------
+                         : 
+Dataset:dataset          : Created tree 'TestTree' with 99772 events
+                         : 
+Dataset:dataset          : Created tree 'TrainTree' with 399092 events
+                         : 
+Factory                  : [1mThank you for using TMVA![0m
+                         : [1mFor citation information, please visit: http://tmva.sf.net/citeTMVA.html[0m
