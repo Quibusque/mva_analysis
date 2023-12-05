@@ -18,8 +18,9 @@ We only want those with ``C_pass_gen_matching`` == 1
 The script modifies the ntuples to be
 ``"C_Ds_pt"`` = [[1.2],[1.7]]
 #### environments to run the scripts
-The scripts are run in a conda environment. Make sure you are using 
-an environment with the correct packages installed
+Packages ROOT and tensorflow are required to run the ``run_TMVA.sh`` script.
+The script ``run_mymva.sh`` requires tensorflow, scikit-learn, xgboost 
+and usual python packages like numpy, pandas, matplotlib, etc.
 
 ### settings
 #### hyperparameters
@@ -58,6 +59,10 @@ The arguments are:
 - ``--old``: use old variables (either this or ``--new`` is required)
 - ``--transf``: perform D,G variables transformation in TMVA
 - ``--out_dir``: output directory (required)
+
+To run the TMVA code you must have run the normal MVA analysis first 
+with the same (new or old) variables to have the keras models files 
+that will be used in the TMVA code.
 
 ### produce output plots
 Run the script ``run_plots.sh``
