@@ -2,3 +2,4 @@
 #ignore python __pycache__ files
 __pycache__/
 vars_dist_plots/
+result*/

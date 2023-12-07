@@ -36,7 +36,8 @@ def read_files_and_open_trees(ntuples_json: str, vars_json: str):
         bkg_labels: list of background labels
     """
     ntuples = read_json_file(ntuples_json)
-    signal_file_names = ntuples["signal_new"]
+    ########AIUTO
+    signal_file_names = ntuples["signal"]
     background_file_names = ntuples["background"]
     treename = ntuples["treename"]
     weight_name = ntuples["weight_name"]

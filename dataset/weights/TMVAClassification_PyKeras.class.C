@@ -10,10 +10,10 @@ Method         : PyKeras::PyKeras
 TMVA Release   : 4.2.1         [262657]
 ROOT Release   : 6.28/04       [400388]
 Creator        : quibus
-Date           : Tue Dec  5 18:37:35 2023
+Date           : Wed Dec  6 16:31:08 2023
 Host           : Linux 596e3a4dc29f 6.2.0-1015-azure #15~22.04.1-Ubuntu SMP Fri Oct 6 13:20:44 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
-Dir            : /home/quibus/analysis_mva
-Training events: 399280
+Dir            : /home/quibus/mva_analysis
+Training events: 399133
 Analysis type  : [Classification]
 
 
@@ -22,8 +22,8 @@ Analysis type  : [Classification]
 # Set by User:
 V: "False" [Verbose output (short form of "VerbosityLevel" below - overrides the latter one)]
 H: "True" [Print method-specific help message]
-FilenameModel: "TMVA_keras_models/keras_shallow_model_new_TMVA.h5" [Filename of the initial Keras model]
-FilenameTrainedModel: "TMVA_keras_models/keras_shallow_model_new_TMVA_trained_model.h5" [Filename of the trained output Keras model]
+FilenameModel: "TMVA_keras_models/keras_shallow_model_old_TMVA.h5" [Filename of the initial Keras model]
+FilenameTrainedModel: "TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5" [Filename of the trained output Keras model]
 BatchSize: "64" [Training batch size]
 NumEpochs: "5" [Number of training epochs]
 Verbose: "1" [Keras verbosity during training]
@@ -48,32 +48,24 @@ UserCode: "" [Optional python code provided by the user to be executed before lo
 
 #VAR -*-*-*-*-*-*-*-*-*-*-*-* variables *-*-*-*-*-*-*-*-*-*-*-*-
 
-NVar 25
-C_Ds_pt                       C_Ds_pt                       C_Ds_pt                       C_Ds_pt                                                         'F'    [10.0333566666,1630.51330566]
-C_Ds_vertex_2DSig_BS          C_Ds_vertex_2DSig_BS          C_Ds_vertex_2DSig_BS          C_Ds_vertex_2DSig_BS                                            'F'    [0.00100046023726,950.809143066]
+NVar 17
+C_Ds_pt                       C_Ds_pt                       C_Ds_pt                       C_Ds_pt                                                         'F'    [10.0242967606,1044.82287598]
+C_Ds_vertex_2DSig_BS          C_Ds_vertex_2DSig_BS          C_Ds_vertex_2DSig_BS          C_Ds_vertex_2DSig_BS                                            'F'    [0.00402594218031,703.078857422]
 C_Ds_vertex_cos2D             C_Ds_vertex_cos2D             C_Ds_vertex_cos2D             C_Ds_vertex_cos2D                                               'F'    [-1,1]
-C_Ds_vertex_prob              C_Ds_vertex_prob              C_Ds_vertex_prob              C_Ds_vertex_prob                                                'F'    [0.0100002158433,0.99999833107]
-C_Hnl_vertex_2DSig_BS         C_Hnl_vertex_2DSig_BS         C_Hnl_vertex_2DSig_BS         C_Hnl_vertex_2DSig_BS                                           'F'    [0.00112656026613,13764.2509766]
+C_Ds_vertex_prob              C_Ds_vertex_prob              C_Ds_vertex_prob              C_Ds_vertex_prob                                                'F'    [0.0100005269051,1]
+C_Hnl_vertex_2DSig_BS         C_Hnl_vertex_2DSig_BS         C_Hnl_vertex_2DSig_BS         C_Hnl_vertex_2DSig_BS                                           'F'    [8.74681572895e-05,17654.2832031]
 C_Hnl_vertex_cos2D            C_Hnl_vertex_cos2D            C_Hnl_vertex_cos2D            C_Hnl_vertex_cos2D                                              'F'    [-1,1]
-C_Hnl_vertex_cos3D            C_Hnl_vertex_cos3D            C_Hnl_vertex_cos3D            C_Hnl_vertex_cos3D                                              'F'    [-0.999999940395,1]
-C_Hnl_vertex_prob             C_Hnl_vertex_prob             C_Hnl_vertex_prob             C_Hnl_vertex_prob                                               'F'    [0.0100007327273,0.999989748001]
-C_mu_Ds_BS_ips_xy             C_mu_Ds_BS_ips_xy             C_mu_Ds_BS_ips_xy             C_mu_Ds_BS_ips_xy                                               'F'    [1.20786999105e-05,272.630737305]
-C_mu_Ds_pt                    C_mu_Ds_pt                    C_mu_Ds_pt                    C_mu_Ds_pt                                                      'F'    [2.00012350082,225.804336548]
-C_mu_Ds_nValidTrackerHits     C_mu_Ds_nValidTrackerHits     C_mu_Ds_nValidTrackerHits     C_mu_Ds_nValidTrackerHits                                       'F'    [0,31]
-C_mu_Ds_nValidPixelHits       C_mu_Ds_nValidPixelHits       C_mu_Ds_nValidPixelHits       C_mu_Ds_nValidPixelHits                                         'F'    [0,8]
-C_mu_Ds_tkIso_R03             C_mu_Ds_tkIso_R03             C_mu_Ds_tkIso_R03             C_mu_Ds_tkIso_R03                                               'F'    [0,53351.0898438]
-C_mu_Hnl_BS_ips_xy            C_mu_Hnl_BS_ips_xy            C_mu_Hnl_BS_ips_xy            C_mu_Hnl_BS_ips_xy                                              'F'    [9.03575346456e-06,272.633392334]
+C_Hnl_vertex_cos3D            C_Hnl_vertex_cos3D            C_Hnl_vertex_cos3D            C_Hnl_vertex_cos3D                                              'F'    [-0.999999940395,0.999999880791]
+C_Hnl_vertex_prob             C_Hnl_vertex_prob             C_Hnl_vertex_prob             C_Hnl_vertex_prob                                               'F'    [0.0100010214373,0.999998688698]
+C_mu_Ds_BS_ips_xy             C_mu_Ds_BS_ips_xy             C_mu_Ds_BS_ips_xy             C_mu_Ds_BS_ips_xy                                               'F'    [1.20786999105e-05,431.166137695]
+C_mu_Ds_pt                    C_mu_Ds_pt                    C_mu_Ds_pt                    C_mu_Ds_pt                                                      'F'    [2.00012350082,218.071090698]
+C_mu_Hnl_BS_ips_xy            C_mu_Hnl_BS_ips_xy            C_mu_Hnl_BS_ips_xy            C_mu_Hnl_BS_ips_xy                                              'F'    [3.53938485205e-05,279.604095459]
 C_mu_Hnl_pt                   C_mu_Hnl_pt                   C_mu_Hnl_pt                   C_mu_Hnl_pt                                                     'F'    [2.0000295639,221.482269287]
-C_mu_Hnl_nValidTrackerHits    C_mu_Hnl_nValidTrackerHits    C_mu_Hnl_nValidTrackerHits    C_mu_Hnl_nValidTrackerHits                                      'F'    [0,30]
-C_mu_Hnl_nValidPixelHits      C_mu_Hnl_nValidPixelHits      C_mu_Hnl_nValidPixelHits      C_mu_Hnl_nValidPixelHits                                        'F'    [0,8]
-C_mu_Hnl_tkIso_R03            C_mu_Hnl_tkIso_R03            C_mu_Hnl_tkIso_R03            C_mu_Hnl_tkIso_R03                                              'F'    [0,53378.4492188]
-C_pi_BS_ip_xy                 C_pi_BS_ip_xy                 C_pi_BS_ip_xy                 C_pi_BS_ip_xy                                                   'F'    [8.74743159851e-12,108.001289368]
-C_pi_BS_ips_xy                C_pi_BS_ips_xy                C_pi_BS_ips_xy                C_pi_BS_ips_xy                                                  'F'    [1.04788648869e-08,646.061157227]
-C_pi_pt                       C_pi_pt                       C_pi_pt                       C_pi_pt                                                         'F'    [0.50048828125,157.125]
-C_pi_nValidTrackerHits        C_pi_nValidTrackerHits        C_pi_nValidTrackerHits        C_pi_nValidTrackerHits                                          'F'    [3,51]
-C_pi_nValidPixelHits          C_pi_nValidPixelHits          C_pi_nValidPixelHits          C_pi_nValidPixelHits                                            'F'    [0,12]
-C_mu1mu2_dr                   C_mu1mu2_dr                   C_mu1mu2_dr                   C_mu1mu2_dr                                                     'F'    [0.000500034308061,0.560781598091]
-C_mu2pi_dr                    C_mu2pi_dr                    C_mu2pi_dr                    C_mu2pi_dr                                                      'F'    [1.10595128717e-05,1.07639825344]
+C_pi_BS_ip_xy                 C_pi_BS_ip_xy                 C_pi_BS_ip_xy                 C_pi_BS_ip_xy                                                   'F'    [3.132941373e-08,106.804397583]
+C_pi_BS_ips_xy                C_pi_BS_ips_xy                C_pi_BS_ips_xy                C_pi_BS_ips_xy                                                  'F'    [6.35279729977e-06,493.649871826]
+C_pi_pt                       C_pi_pt                       C_pi_pt                       C_pi_pt                                                         'F'    [0.50048828125,236.125]
+C_mu1mu2_dr                   C_mu1mu2_dr                   C_mu1mu2_dr                   C_mu1mu2_dr                                                     'F'    [9.79517571977e-05,0.561493813992]
+C_mu2pi_dr                    C_mu2pi_dr                    C_mu2pi_dr                    C_mu2pi_dr                                                      'F'    [1.75024015334e-05,1.09859824181]
 NSpec 0
 
 
@@ -117,10 +109,10 @@ class ReadPyKeras : public IClassifierReader {
    ReadPyKeras( std::vector<std::string>& theInputVars )
       : IClassifierReader(),
         fClassName( "ReadPyKeras" ),
-        fNvars( 25 )
+        fNvars( 17 )
    {
       // the training input variables
-      const char* inputVars[] = { "C_Ds_pt", "C_Ds_vertex_2DSig_BS", "C_Ds_vertex_cos2D", "C_Ds_vertex_prob", "C_Hnl_vertex_2DSig_BS", "C_Hnl_vertex_cos2D", "C_Hnl_vertex_cos3D", "C_Hnl_vertex_prob", "C_mu_Ds_BS_ips_xy", "C_mu_Ds_pt", "C_mu_Ds_nValidTrackerHits", "C_mu_Ds_nValidPixelHits", "C_mu_Ds_tkIso_R03", "C_mu_Hnl_BS_ips_xy", "C_mu_Hnl_pt", "C_mu_Hnl_nValidTrackerHits", "C_mu_Hnl_nValidPixelHits", "C_mu_Hnl_tkIso_R03", "C_pi_BS_ip_xy", "C_pi_BS_ips_xy", "C_pi_pt", "C_pi_nValidTrackerHits", "C_pi_nValidPixelHits", "C_mu1mu2_dr", "C_mu2pi_dr" };
+      const char* inputVars[] = { "C_Ds_pt", "C_Ds_vertex_2DSig_BS", "C_Ds_vertex_cos2D", "C_Ds_vertex_prob", "C_Hnl_vertex_2DSig_BS", "C_Hnl_vertex_cos2D", "C_Hnl_vertex_cos3D", "C_Hnl_vertex_prob", "C_mu_Ds_BS_ips_xy", "C_mu_Ds_pt", "C_mu_Hnl_BS_ips_xy", "C_mu_Hnl_pt", "C_pi_BS_ip_xy", "C_pi_BS_ips_xy", "C_pi_pt", "C_mu1mu2_dr", "C_mu2pi_dr" };
 
       // sanity checks
       if (theInputVars.size() <= 0) {
@@ -178,22 +170,6 @@ class ReadPyKeras : public IClassifierReader {
       fVmax[15] = 0;
       fVmin[16] = 0;
       fVmax[16] = 0;
-      fVmin[17] = 0;
-      fVmax[17] = 0;
-      fVmin[18] = 0;
-      fVmax[18] = 0;
-      fVmin[19] = 0;
-      fVmax[19] = 0;
-      fVmin[20] = 0;
-      fVmax[20] = 0;
-      fVmin[21] = 0;
-      fVmax[21] = 0;
-      fVmin[22] = 0;
-      fVmax[22] = 0;
-      fVmin[23] = 0;
-      fVmax[23] = 0;
-      fVmin[24] = 0;
-      fVmax[24] = 0;
 
       // initialize input variable types
       fType[0] = 'F';
@@ -213,14 +189,6 @@ class ReadPyKeras : public IClassifierReader {
       fType[14] = 'F';
       fType[15] = 'F';
       fType[16] = 'F';
-      fType[17] = 'F';
-      fType[18] = 'F';
-      fType[19] = 'F';
-      fType[20] = 'F';
-      fType[21] = 'F';
-      fType[22] = 'F';
-      fType[23] = 'F';
-      fType[24] = 'F';
 
       // initialize constants
       Initialize();
@@ -250,15 +218,15 @@ class ReadPyKeras : public IClassifierReader {
    char   GetType( int ivar ) const { return fType[ivar]; }
 
    // normalisation of input variables
-   double fVmin[25];
-   double fVmax[25];
+   double fVmin[17];
+   double fVmax[17];
    double NormVariable( double x, double xmin, double xmax ) const {
       // normalise to output range: [-1, 1]
       return 2*(x - xmin)/(xmax - xmin) - 1.0;
    }
 
    // type of input variable: 'F' or 'I'
-   char   fType[25];
+   char   fType[17];
 
    // initialize internal variables
    void Initialize();

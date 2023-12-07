@@ -23,7 +23,7 @@ from mva_tools.mva_response_tools import (
 from mva_tools.mva_plot_tools import plot_corr_matrix
 from my_logging import log_weights, log_histo_weights, log_num_events
 
-methods_list = ["keras_shallow"]
+methods_list = ["keras_shallow", "adaboost", "XGBoost"]
 
 
 if __name__ == "__main__":
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         sig_labels,
         bkg_labels,
     ) = read_files_and_open_trees(ntuples_json, vars_json)
-
+    print(f"file reading is done")
     # ┌────────────────────────────────┐
     # │ CHOOSE YOUR MASSES TO TRAIN ON │
     # └────────────────────────────────┘

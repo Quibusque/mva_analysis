@@ -4,11 +4,11 @@
     <Info name="TMVA Release" value="4.2.1 [262657]"/>
     <Info name="ROOT Release" value="6.28/04 [400388]"/>
     <Info name="Creator" value="quibus"/>
-    <Info name="Date" value="Tue Dec  5 18:37:35 2023"/>
+    <Info name="Date" value="Wed Dec  6 16:31:08 2023"/>
     <Info name="Host" value="Linux 596e3a4dc29f 6.2.0-1015-azure #15~22.04.1-Ubuntu SMP Fri Oct 6 13:20:44 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux"/>
-    <Info name="Dir" value="/home/quibus/analysis_mva"/>
-    <Info name="Training events" value="399280"/>
-    <Info name="TrainingTime" value="9.60100591e+01"/>
+    <Info name="Dir" value="/home/quibus/mva_analysis"/>
+    <Info name="Training events" value="399133"/>
+    <Info name="TrainingTime" value="9.65454402e+01"/>
     <Info name="AnalysisType" value="Classification"/>
   </GeneralInfo>
   <Options>
@@ -18,8 +18,8 @@
     <Option name="H" modified="Yes">True</Option>
     <Option name="CreateMVAPdfs" modified="No">False</Option>
     <Option name="IgnoreNegWeightsInTraining" modified="No">False</Option>
-    <Option name="FilenameModel" modified="Yes">TMVA_keras_models/keras_shallow_model_new_TMVA.h5</Option>
-    <Option name="FilenameTrainedModel" modified="Yes">TMVA_keras_models/keras_shallow_model_new_TMVA_trained_model.h5</Option>
+    <Option name="FilenameModel" modified="Yes">TMVA_keras_models/keras_shallow_model_old_TMVA.h5</Option>
+    <Option name="FilenameTrainedModel" modified="Yes">TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5</Option>
     <Option name="BatchSize" modified="Yes">64</Option>
     <Option name="NumEpochs" modified="Yes">5</Option>
     <Option name="NumThreads" modified="No">0</Option>
@@ -35,32 +35,24 @@
     <Option name="ValidationSize" modified="No">20%</Option>
     <Option name="UserCode" modified="No"/>
   </Options>
-  <Variables NVar="25">
-    <Variable VarIndex="0" Expression="C_Ds_pt" Label="C_Ds_pt" Title="C_Ds_pt" Unit="" Internal="C_Ds_pt" Type="F" Min="1.00333567e+01" Max="1.63051331e+03"/>
-    <Variable VarIndex="1" Expression="C_Ds_vertex_2DSig_BS" Label="C_Ds_vertex_2DSig_BS" Title="C_Ds_vertex_2DSig_BS" Unit="" Internal="C_Ds_vertex_2DSig_BS" Type="F" Min="1.00046024e-03" Max="9.50809143e+02"/>
+  <Variables NVar="17">
+    <Variable VarIndex="0" Expression="C_Ds_pt" Label="C_Ds_pt" Title="C_Ds_pt" Unit="" Internal="C_Ds_pt" Type="F" Min="1.00242968e+01" Max="1.04482288e+03"/>
+    <Variable VarIndex="1" Expression="C_Ds_vertex_2DSig_BS" Label="C_Ds_vertex_2DSig_BS" Title="C_Ds_vertex_2DSig_BS" Unit="" Internal="C_Ds_vertex_2DSig_BS" Type="F" Min="4.02594218e-03" Max="7.03078857e+02"/>
     <Variable VarIndex="2" Expression="C_Ds_vertex_cos2D" Label="C_Ds_vertex_cos2D" Title="C_Ds_vertex_cos2D" Unit="" Internal="C_Ds_vertex_cos2D" Type="F" Min="-1.00000000e+00" Max="1.00000000e+00"/>
-    <Variable VarIndex="3" Expression="C_Ds_vertex_prob" Label="C_Ds_vertex_prob" Title="C_Ds_vertex_prob" Unit="" Internal="C_Ds_vertex_prob" Type="F" Min="1.00002158e-02" Max="9.99998331e-01"/>
-    <Variable VarIndex="4" Expression="C_Hnl_vertex_2DSig_BS" Label="C_Hnl_vertex_2DSig_BS" Title="C_Hnl_vertex_2DSig_BS" Unit="" Internal="C_Hnl_vertex_2DSig_BS" Type="F" Min="1.12656027e-03" Max="1.37642510e+04"/>
+    <Variable VarIndex="3" Expression="C_Ds_vertex_prob" Label="C_Ds_vertex_prob" Title="C_Ds_vertex_prob" Unit="" Internal="C_Ds_vertex_prob" Type="F" Min="1.00005269e-02" Max="1.00000000e+00"/>
+    <Variable VarIndex="4" Expression="C_Hnl_vertex_2DSig_BS" Label="C_Hnl_vertex_2DSig_BS" Title="C_Hnl_vertex_2DSig_BS" Unit="" Internal="C_Hnl_vertex_2DSig_BS" Type="F" Min="8.74681573e-05" Max="1.76542832e+04"/>
     <Variable VarIndex="5" Expression="C_Hnl_vertex_cos2D" Label="C_Hnl_vertex_cos2D" Title="C_Hnl_vertex_cos2D" Unit="" Internal="C_Hnl_vertex_cos2D" Type="F" Min="-1.00000000e+00" Max="1.00000000e+00"/>
-    <Variable VarIndex="6" Expression="C_Hnl_vertex_cos3D" Label="C_Hnl_vertex_cos3D" Title="C_Hnl_vertex_cos3D" Unit="" Internal="C_Hnl_vertex_cos3D" Type="F" Min="-9.99999940e-01" Max="1.00000000e+00"/>
-    <Variable VarIndex="7" Expression="C_Hnl_vertex_prob" Label="C_Hnl_vertex_prob" Title="C_Hnl_vertex_prob" Unit="" Internal="C_Hnl_vertex_prob" Type="F" Min="1.00007327e-02" Max="9.99989748e-01"/>
-    <Variable VarIndex="8" Expression="C_mu_Ds_BS_ips_xy" Label="C_mu_Ds_BS_ips_xy" Title="C_mu_Ds_BS_ips_xy" Unit="" Internal="C_mu_Ds_BS_ips_xy" Type="F" Min="1.20786999e-05" Max="2.72630737e+02"/>
-    <Variable VarIndex="9" Expression="C_mu_Ds_pt" Label="C_mu_Ds_pt" Title="C_mu_Ds_pt" Unit="" Internal="C_mu_Ds_pt" Type="F" Min="2.00012350e+00" Max="2.25804337e+02"/>
-    <Variable VarIndex="10" Expression="C_mu_Ds_nValidTrackerHits" Label="C_mu_Ds_nValidTrackerHits" Title="C_mu_Ds_nValidTrackerHits" Unit="" Internal="C_mu_Ds_nValidTrackerHits" Type="F" Min="0.00000000e+00" Max="3.10000000e+01"/>
-    <Variable VarIndex="11" Expression="C_mu_Ds_nValidPixelHits" Label="C_mu_Ds_nValidPixelHits" Title="C_mu_Ds_nValidPixelHits" Unit="" Internal="C_mu_Ds_nValidPixelHits" Type="F" Min="0.00000000e+00" Max="8.00000000e+00"/>
-    <Variable VarIndex="12" Expression="C_mu_Ds_tkIso_R03" Label="C_mu_Ds_tkIso_R03" Title="C_mu_Ds_tkIso_R03" Unit="" Internal="C_mu_Ds_tkIso_R03" Type="F" Min="0.00000000e+00" Max="5.33510898e+04"/>
-    <Variable VarIndex="13" Expression="C_mu_Hnl_BS_ips_xy" Label="C_mu_Hnl_BS_ips_xy" Title="C_mu_Hnl_BS_ips_xy" Unit="" Internal="C_mu_Hnl_BS_ips_xy" Type="F" Min="9.03575346e-06" Max="2.72633392e+02"/>
-    <Variable VarIndex="14" Expression="C_mu_Hnl_pt" Label="C_mu_Hnl_pt" Title="C_mu_Hnl_pt" Unit="" Internal="C_mu_Hnl_pt" Type="F" Min="2.00002956e+00" Max="2.21482269e+02"/>
-    <Variable VarIndex="15" Expression="C_mu_Hnl_nValidTrackerHits" Label="C_mu_Hnl_nValidTrackerHits" Title="C_mu_Hnl_nValidTrackerHits" Unit="" Internal="C_mu_Hnl_nValidTrackerHits" Type="F" Min="0.00000000e+00" Max="3.00000000e+01"/>
-    <Variable VarIndex="16" Expression="C_mu_Hnl_nValidPixelHits" Label="C_mu_Hnl_nValidPixelHits" Title="C_mu_Hnl_nValidPixelHits" Unit="" Internal="C_mu_Hnl_nValidPixelHits" Type="F" Min="0.00000000e+00" Max="8.00000000e+00"/>
-    <Variable VarIndex="17" Expression="C_mu_Hnl_tkIso_R03" Label="C_mu_Hnl_tkIso_R03" Title="C_mu_Hnl_tkIso_R03" Unit="" Internal="C_mu_Hnl_tkIso_R03" Type="F" Min="0.00000000e+00" Max="5.33784492e+04"/>
-    <Variable VarIndex="18" Expression="C_pi_BS_ip_xy" Label="C_pi_BS_ip_xy" Title="C_pi_BS_ip_xy" Unit="" Internal="C_pi_BS_ip_xy" Type="F" Min="8.74743160e-12" Max="1.08001289e+02"/>
-    <Variable VarIndex="19" Expression="C_pi_BS_ips_xy" Label="C_pi_BS_ips_xy" Title="C_pi_BS_ips_xy" Unit="" Internal="C_pi_BS_ips_xy" Type="F" Min="1.04788649e-08" Max="6.46061157e+02"/>
-    <Variable VarIndex="20" Expression="C_pi_pt" Label="C_pi_pt" Title="C_pi_pt" Unit="" Internal="C_pi_pt" Type="F" Min="5.00488281e-01" Max="1.57125000e+02"/>
-    <Variable VarIndex="21" Expression="C_pi_nValidTrackerHits" Label="C_pi_nValidTrackerHits" Title="C_pi_nValidTrackerHits" Unit="" Internal="C_pi_nValidTrackerHits" Type="F" Min="3.00000000e+00" Max="5.10000000e+01"/>
-    <Variable VarIndex="22" Expression="C_pi_nValidPixelHits" Label="C_pi_nValidPixelHits" Title="C_pi_nValidPixelHits" Unit="" Internal="C_pi_nValidPixelHits" Type="F" Min="0.00000000e+00" Max="1.20000000e+01"/>
-    <Variable VarIndex="23" Expression="C_mu1mu2_dr" Label="C_mu1mu2_dr" Title="C_mu1mu2_dr" Unit="" Internal="C_mu1mu2_dr" Type="F" Min="5.00034308e-04" Max="5.60781598e-01"/>
-    <Variable VarIndex="24" Expression="C_mu2pi_dr" Label="C_mu2pi_dr" Title="C_mu2pi_dr" Unit="" Internal="C_mu2pi_dr" Type="F" Min="1.10595129e-05" Max="1.07639825e+00"/>
+    <Variable VarIndex="6" Expression="C_Hnl_vertex_cos3D" Label="C_Hnl_vertex_cos3D" Title="C_Hnl_vertex_cos3D" Unit="" Internal="C_Hnl_vertex_cos3D" Type="F" Min="-9.99999940e-01" Max="9.99999881e-01"/>
+    <Variable VarIndex="7" Expression="C_Hnl_vertex_prob" Label="C_Hnl_vertex_prob" Title="C_Hnl_vertex_prob" Unit="" Internal="C_Hnl_vertex_prob" Type="F" Min="1.00010214e-02" Max="9.99998689e-01"/>
+    <Variable VarIndex="8" Expression="C_mu_Ds_BS_ips_xy" Label="C_mu_Ds_BS_ips_xy" Title="C_mu_Ds_BS_ips_xy" Unit="" Internal="C_mu_Ds_BS_ips_xy" Type="F" Min="1.20786999e-05" Max="4.31166138e+02"/>
+    <Variable VarIndex="9" Expression="C_mu_Ds_pt" Label="C_mu_Ds_pt" Title="C_mu_Ds_pt" Unit="" Internal="C_mu_Ds_pt" Type="F" Min="2.00012350e+00" Max="2.18071091e+02"/>
+    <Variable VarIndex="10" Expression="C_mu_Hnl_BS_ips_xy" Label="C_mu_Hnl_BS_ips_xy" Title="C_mu_Hnl_BS_ips_xy" Unit="" Internal="C_mu_Hnl_BS_ips_xy" Type="F" Min="3.53938485e-05" Max="2.79604095e+02"/>
+    <Variable VarIndex="11" Expression="C_mu_Hnl_pt" Label="C_mu_Hnl_pt" Title="C_mu_Hnl_pt" Unit="" Internal="C_mu_Hnl_pt" Type="F" Min="2.00002956e+00" Max="2.21482269e+02"/>
+    <Variable VarIndex="12" Expression="C_pi_BS_ip_xy" Label="C_pi_BS_ip_xy" Title="C_pi_BS_ip_xy" Unit="" Internal="C_pi_BS_ip_xy" Type="F" Min="3.13294137e-08" Max="1.06804398e+02"/>
+    <Variable VarIndex="13" Expression="C_pi_BS_ips_xy" Label="C_pi_BS_ips_xy" Title="C_pi_BS_ips_xy" Unit="" Internal="C_pi_BS_ips_xy" Type="F" Min="6.35279730e-06" Max="4.93649872e+02"/>
+    <Variable VarIndex="14" Expression="C_pi_pt" Label="C_pi_pt" Title="C_pi_pt" Unit="" Internal="C_pi_pt" Type="F" Min="5.00488281e-01" Max="2.36125000e+02"/>
+    <Variable VarIndex="15" Expression="C_mu1mu2_dr" Label="C_mu1mu2_dr" Title="C_mu1mu2_dr" Unit="" Internal="C_mu1mu2_dr" Type="F" Min="9.79517572e-05" Max="5.61493814e-01"/>
+    <Variable VarIndex="16" Expression="C_mu2pi_dr" Label="C_mu2pi_dr" Title="C_mu2pi_dr" Unit="" Internal="C_mu2pi_dr" Type="F" Min="1.75024015e-05" Max="1.09859824e+00"/>
   </Variables>
   <Spectators NSpec="0"/>
   <Classes NClass="2">

@@ -48,7 +48,7 @@ if __name__ == "__main__":
     out_dir = f"{out_dir}/TMVA"
 
     ntuples = read_json_file("source/cfg/ntuples.json")
-    signal_file_names = ntuples["signal_new"]
+    signal_file_names = ntuples["signal"]
     background_file_names = ntuples["background"]
     treename = ntuples["treename"]
     weight_name = ntuples["weight_name"]
@@ -118,14 +118,14 @@ if __name__ == "__main__":
 
         print(f"keras_par_string: {keras_par_string}")
 
-        # # ┌──────────────────────────────────┐
-        # # │ HYPERPARAMETERS SETTINGS FOR BDT │
-        # # └──────────────────────────────────┘
-        # BDT_par_string = "!H:!V:"
-        # BDT_ntrees = hyperpars["adaboost"]["n_estimators"]
-        # BDT_min_node_size = hyperpars["adaboost"]["min_samples_leaf"]
-        # BDT_max_depth = hyperpars["adaboost"]["max_depth"]
-        # BDT_par_string += f"NTrees={BDT_ntrees}:MinNodeSize={BDT_min_node_size}:MaxDepth={BDT_max_depth}"
+        # ┌──────────────────────────────────┐
+        # │ HYPERPARAMETERS SETTINGS FOR BDT │
+        # └──────────────────────────────────┘
+        BDT_par_string = "!H:!V:"
+        BDT_ntrees = hyperpars["adaboost"]["n_estimators"]
+        BDT_min_node_size = hyperpars["adaboost"]["min_samples_leaf"]
+        BDT_max_depth = hyperpars["adaboost"]["max_depth"]
+        BDT_par_string += f"NTrees={BDT_ntrees}:MinNodeSize={BDT_min_node_size}:MaxDepth={BDT_max_depth}"
 
         print(f"dealing with signal {signal_label}")
         print(f"signal file name: {signal_file_name}")
@@ -202,13 +202,13 @@ if __name__ == "__main__":
             "PyKeras",
             keras_par_string,
         )
-        # #book tmva BDT
-        # factory.BookMethod(
-        #     dataloader,
-        #     TMVA.Types.kBDT,
-        #     "BDT",
-        #     BDT_par_string,
-        # )
+        #book tmva BDT
+        factory.BookMethod(
+            dataloader,
+            TMVA.Types.kBDT,
+            "BDT",
+            BDT_par_string,
+        )
 
         # Run training, test and evaluation
         factory.TrainAllMethods()

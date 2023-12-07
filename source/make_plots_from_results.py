@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # results/myMVA/siglabel0, results/myMVA/siglabel1 get siglabels
     sig_labels = os.listdir(f"{input_dir}/myMVA")
 
-    methods_list = ["keras_shallow"]
+    methods_list = ["keras_shallow","adaboost","XGBoost"]
 
     for sig_label in sig_labels:
         print(sig_label)
@@ -104,6 +104,7 @@ if __name__ == "__main__":
         # │ ROCS │
         # └──────┘
         for method in methods_list:
+            print(f"method: {method}")
             df = pd.read_csv(f"{myMVA_dir}/{method}_results.csv")
             # myMVA
             if args.mymva:
@@ -142,10 +143,10 @@ if __name__ == "__main__":
                 plt.plot(x_values, y_values, label=f"{sig_label} {method} myMVA \nauc = {auc:.3f}")
 
             # TMVA
-            if args.tmva:
+            if args.tmva and method != "XGBoost":
                 if "keras" in method:
                     method = "PyKeras"
-                if "adaboost" in method:
+                elif "adaboost" in method:
                     method = "BDT"
                 # roc = root_file[
                 #     f"{input_dir_name}/TMVA/{sig_label}/dataset/Method_{method}/{method}/MVA_{method}_trainingRejBvsS"
@@ -171,7 +172,7 @@ if __name__ == "__main__":
             x_lower_index = np.argmin(np.abs(y_values - 0.95))
             x_low = x_values[x_lower_index]
             x_high = 1.01
-            plt.xlim(x_low, x_high)
+            plt.xlim(0., x_high)
 
             plt.legend(loc="lower left")
 
@@ -183,6 +184,7 @@ if __name__ == "__main__":
         # └─────────────────────┘
         for method in methods_list:
             df = pd.read_csv(f"{myMVA_dir}/{method}_results.csv")
+            log_scale = False
             if "keras" in method:
                 log_scale = True
             # myMVA
@@ -194,7 +196,7 @@ if __name__ == "__main__":
                 train_bkg_hist = np.array(df["train_bkg_hist"])
                 test_sig_hist = np.array(df["test_sig_hist"])
                 test_bkg_hist = np.array(df["test_bkg_hist"])
-
+                plt.close()
                 plot_response_hists(
                     train_sig_hist,
                     train_bkg_hist,
@@ -206,13 +208,16 @@ if __name__ == "__main__":
                     plots_dir,
                     log_scale=log_scale,
                 )
+                plt.close()
 
             # TMVA
             if args.tmva:
                 if "keras" in method:
                     method = "PyKeras"
-                if "adaboost" in method:
+                elif "adaboost" in method:
                     method = "BDT"
+                elif method == "XGBoost":
+                    continue
                 test_sig_hist_TMVA = root_file[
                     f"dataset/Method_{method}/{method}/MVA_{method}_S"
                 ]
