@@ -3,3 +3,5 @@
 __pycache__/
 vars_dist_plots/
 result*/
+#dataset is TMVA output, not important
+dataset/
