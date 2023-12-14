@@ -14,7 +14,12 @@ from mva_tools.mva_training_tools import (
     load_model,
     methods_list,
 )
-from data_tools.load_data import read_files_and_open_trees, get_data, filter_trees
+from data_tools.load_data import (
+    read_files_and_open_trees,
+    get_data,
+    get_categorized_data,
+    filter_trees,
+)
 from mva_tools.mva_response_tools import (
     my_predict,
     model_response_hists,
@@ -108,22 +113,75 @@ if __name__ == "__main__":
             results_dir = f"{out_dir}/{sig_label}"
             if not os.path.exists(results_dir):
                 os.makedirs(results_dir)
-            # GET DATA x-y arrays
-            (
-            x_train_categories,
-            x_test_categories,
-            y_train_categories,
-            y_test_categories,
-            w_train_categories,
-            w_test_categories,
-            ) = get_data(
+            # GET DATA, CATEGORIZED
+            categories=[1, 2, 4, 5, 6]
+            full_data = get_categorized_data(
                 sig_tree,
                 bkg_trees,
                 good_vars,
                 weight_name,
                 test_fraction,
                 rng_seed=42,
-                equalnumevents=False,
-                categories=True,
+                equalnumevents=True,
+                category_list=categories,
             )
-           
+            # TRAINING
+            for category,data in zip(categories,full_data):
+                print(f"Training category {category} ...")
+                x_train, x_test, y_train, y_test, w_train, w_test = data
+                log_weights(y_train, y_test, w_train, w_test, sig_label)
+                log_num_events(y_train, y_test, sig_label)
+                # SIGNAL AND BACKGROUND TRAINING AND TEST SAMPLES
+                x_train_sig = x_train[y_train == 1]
+                x_train_bkg = x_train[y_train == 0]
+                x_test_sig = x_test[y_test == 1]
+                x_test_bkg = x_test[y_test == 0]
+                # corresponding weights
+                w_train_sig = w_train[y_train == 1]
+                w_train_bkg = w_train[y_train == 0]
+                w_test_sig = w_test[y_test == 1]
+                w_test_bkg = w_test[y_test == 0]
+
+                #PLOT CORRELATION MATRIX
+                plot_corr_matrix(x_train_sig, x_test_sig, good_vars, results_dir,f"sig_cat{category}")
+                plot_corr_matrix(x_train_bkg, x_test_bkg, good_vars, results_dir,f"bkg_cat{category}")
+
+                # TRAIN
+                train_one_signal_all_methods(
+                    x_train, y_train, w_train, methods_list, results_dir, new_vars=args.new
+                )
+                print(f"Training category {category} complete!")
+            print(f"Training {sig_label} complete!")
+
+        #          if args.train:
+        # for sig_tree, sig_label in zip(my_sig_trees, my_sig_labels):
+        #     print(f"Training {sig_label} ...")
+        #     results_dir = f"{out_dir}/{sig_label}"
+        #     if not os.path.exists(results_dir):
+        #         os.makedirs(results_dir)
+        #     # GET DATA x-y arrays
+        #     x_train, x_test, y_train, y_test, w_train, w_test = get_data(
+        #         sig_tree, bkg_trees, good_vars, weight_name, test_fraction, rng_seed=0
+        #     )
+        #     log_weights(y_train, y_test, w_train, w_test, sig_label)
+        #     log_num_events(y_train, y_test, sig_label)
+        #     # SIGNAL AND BACKGROUND TRAINING AND TEST SAMPLES
+        #     x_train_sig = x_train[y_train == 1]
+        #     x_train_bkg = x_train[y_train == 0]
+        #     x_test_sig = x_test[y_test == 1]
+        #     x_test_bkg = x_test[y_test == 0]
+        #     # corresponding weights
+        #     w_train_sig = w_train[y_train == 1]
+        #     w_train_bkg = w_train[y_train == 0]
+        #     w_test_sig = w_test[y_test == 1]
+        #     w_test_bkg = w_test[y_test == 0]
+
+        #     #PLOT CORRELATION MATRIX
+            # plot_corr_matrix(x_train_sig, x_test_sig, good_vars, results_dir,"sig")
+            # plot_corr_matrix(x_train_bkg, x_test_bkg, good_vars, results_dir,"bkg")
+
+        #     # TRAIN
+        #     train_one_signal_all_methods(
+        #         x_train, y_train, w_train, methods_list, results_dir, new_vars=args.new
+        #     )
+        #     print(f"Training {sig_label} complete!")

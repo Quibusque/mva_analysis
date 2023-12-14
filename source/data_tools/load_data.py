@@ -202,6 +202,7 @@ def get_categorized_data(
     weight_name,
     test_fraction,
     rng_seed: int,
+    category_list = [1,2,4,5,6],
     equalnumevents: bool = True,
 ):
     """

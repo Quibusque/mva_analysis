@@ -272,6 +272,32 @@ def train_one_signal_all_methods(
             hyperpars_file=hyperpars_file,
         )
 
+def train_one_signal_all_methods_categorized(
+    x_train,
+    y_train,
+    w_train,
+    methods_list,
+    out_dir,
+    new_vars: bool,
+    category_index: str,
+    hyperpars_file: str = "source/cfg/hyperparameters.json",
+):
+    out_dir = f"{out_dir}/cat_{category_index}"
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    for method in methods_list:
+        train_one_signal_one_method(
+            x_train,
+            y_train,
+            w_train,
+            method,
+            out_dir,
+            new_vars=new_vars,
+            hyperpars_file=hyperpars_file,
+        )
+
+
 
 def load_model(model_path, method):
     # if method not in methods_list, raise ValueError
