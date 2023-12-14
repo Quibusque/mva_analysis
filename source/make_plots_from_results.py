@@ -93,9 +93,10 @@ if __name__ == "__main__":
 
     for sig_label in sig_labels:
         print(sig_label)
-        TMVA_dir = f"{input_dir_tmva}/TMVA/{sig_label}"
         myMVA_dir = f"{input_dir}/myMVA/{sig_label}"
-        root_file = uproot.open(f"{TMVA_dir}/TMVA_output.root")
+        if args.tmva:
+            TMVA_dir = f"{input_dir_tmva}/TMVA/{sig_label}"
+            root_file = uproot.open(f"{TMVA_dir}/TMVA_output.root")
         plots_dir = f"{out_dir}/{sig_label}"
         if not os.path.exists(plots_dir):
             os.makedirs(plots_dir)
