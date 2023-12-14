@@ -37,8 +37,8 @@ def read_files_and_open_trees(ntuples_json: str, vars_json: str):
     """
     ntuples = read_json_file(ntuples_json)
     ########AIUTO
-    signal_file_names = ntuples["signal"]
-    background_file_names = ntuples["background"]
+    signal_file_names = ntuples["signal_new"]
+    background_file_names = ntuples["background_new"]
     treename = ntuples["treename"]
     weight_name = ntuples["weight_name"]
 
