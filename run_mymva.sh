@@ -2,7 +2,7 @@
 
 
 
-OUT_DIR=results_vars_new
+OUT_DIR=results_vars_old
 mkdir -p $OUT_DIR
 
 #mass list ("mN1p5" "mN1p0")

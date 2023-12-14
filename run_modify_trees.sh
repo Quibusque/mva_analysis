@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 source/modify_ttrees.py
+python3 source/modify_ttrees.py --category
