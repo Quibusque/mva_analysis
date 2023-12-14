@@ -193,3 +193,72 @@ def get_data(
         x, y, w, test_size=test_fraction, random_state=rng_seed
     )
     return x_train, x_test, y_train, y_test, w_train, w_test
+
+
+def get_categorized_data(
+    sig_tree,
+    bkg_trees,
+    good_vars,
+    weight_name,
+    test_fraction,
+    rng_seed: int,
+    equalnumevents: bool = True,
+):
+    """
+
+    """
+    logging.info(f"get_categorized_data called with equalnumevents = {equalnumevents}")
+
+    data = []
+
+    # Get data from trees, in form of dictionaries
+    data_sig = uproot.concatenate(sig_tree, expressions=good_vars, how=dict)
+    data_bkg = uproot.concatenate(bkg_trees, expressions=good_vars, how=dict)
+    data_bkg_weight = uproot.concatenate(bkg_trees, expressions=weight_name, how=dict)
+    
+    category_list = [1,2,4,5,6]
+    for category in category_list:
+        #build x_sig and x_bkg for the category, i.e. data["C_category"]==category
+
+        x_sig = np.array([ak.flatten(data_sig[var][data_sig["C_category"]==category]) for var in good_vars]).T
+        x_bkg = np.array([ak.flatten(data_bkg[var][data_bkg["C_category"]==category]) for var in good_vars]).T
+
+        b_w = data_bkg_weight[weight_name][data_bkg["C_category"]==category]
+
+
+        # WEIGHTS
+        num_sig = x_sig.shape[0]
+        num_bkg = x_bkg.shape[0]
+        b_w = np.array(b_w)
+        s_w = np.ones(num_sig)
+
+        logging.info(f"category {category}: number of signal events = {num_sig}")
+        logging.info(f"category {category}: number of background events = {num_bkg}")
+        logging.info(f"category {category}: before renormalization, sum of sig weights = {np.sum(s_w)}")
+        logging.info(f"category {category}: before renormalization, sum of bkg weights = {np.sum(b_w)}")
+
+        # Create full x,y,w arrays
+
+        # REWEIGHTING FOR EQUALNUMEVENTS
+        # convert s_w and b_w to numpy arrs
+        if equalnumevents:
+            renorm_signal = num_sig / np.sum(s_w)
+            renorm_background = num_sig / np.sum(b_w)
+            s_w *= renorm_signal
+            b_w *= renorm_background
+            logging.info(f"category {category}: renormalizing signal weights by {renorm_signal}")
+            logging.info(f"category {category}: renormalizing background weights by {renorm_background}")
+            logging.info(f"category {category}: after renormalization, sum of sig weights = {np.sum(s_w)}")
+            logging.info(f"category {category}: after renormalization, sum of bkg weights = {np.sum(b_w)}")
+
+
+        x = np.vstack((x_sig, x_bkg))
+        y = np.hstack([np.ones(num_sig), np.zeros(num_bkg)])
+        w = np.hstack([s_w, b_w])
+
+        x_train, x_test, y_train, y_test, w_train, w_test = train_test_split(
+            x, y, w, test_size=test_fraction, random_state=rng_seed
+        )
+        data.append((x_train, x_test, y_train, y_test, w_train, w_test))
+
+    return data
