@@ -15,13 +15,15 @@ from cfg.hnl_mva_tools import read_json_file
 logging.basicConfig(level=logging.INFO)
 
 
-def read_files_and_open_trees(ntuples_json: str, vars_json: str):
+def read_files_and_open_trees(
+    ntuples_json: str, vars_json: str, additional_vars: list = []
+):
     """
     This function reads the ntuples_json file which contains the file names
     for signal and background ntuples, the treename, and the weight name.
 
-    Labels for signal and background are extracted from the file names 
-    and will look something like "mN1p0_ctau10" for signal and 
+    Labels for signal and background are extracted from the file names
+    and will look something like "mN1p0_ctau10" for signal and
     "QCD_Pt-80To120_MuEnriched" for background.
 
     Args:
@@ -49,6 +51,7 @@ def read_files_and_open_trees(ntuples_json: str, vars_json: str):
 
     # LIST OF VARIABLES TO USE
     good_vars = read_json_file(vars_json)["vars"]
+    good_vars += additional_vars
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
 
@@ -72,11 +75,11 @@ def filter_trees(trees, tree_labels, mass_list, ctau_list):
     Returns:
         return_trees: list of trees to keep
         return_labels: list of labels to keep
-    
+
     Example:
         Inputs will look like this:
         trees = [tree1, tree2, tree3, tree4]
-        tree_labels = ["mN1p0_ctau100", "mN1p0_ctau10", 
+        tree_labels = ["mN1p0_ctau100", "mN1p0_ctau10",
                         "mN1p0_ctau1000", "mN1p5_ctau100"]
         mass_list = ["mN1p0"]
         ctau_list = ["ctau100", "ctau10"]
@@ -202,12 +205,10 @@ def get_categorized_data(
     weight_name,
     test_fraction,
     rng_seed: int,
-    category_list = [1,2,4,5,6],
+    category_list=[1, 2, 4, 5, 6],
     equalnumevents: bool = True,
 ):
-    """
-
-    """
+    """ """
     logging.info(f"get_categorized_data called with equalnumevents = {equalnumevents}")
 
     data = []
@@ -216,16 +217,25 @@ def get_categorized_data(
     data_sig = uproot.concatenate(sig_tree, expressions=good_vars, how=dict)
     data_bkg = uproot.concatenate(bkg_trees, expressions=good_vars, how=dict)
     data_bkg_weight = uproot.concatenate(bkg_trees, expressions=weight_name, how=dict)
-    
-    category_list = [1,2,4,5,6]
+
+    category_list = [1, 2, 4, 5, 6]
     for category in category_list:
-        #build x_sig and x_bkg for the category, i.e. data["C_category"]==category
+        # build x_sig and x_bkg for the category, i.e. data["C_category"]==category
 
-        x_sig = np.array([ak.flatten(data_sig[var][data_sig["C_category"]==category]) for var in good_vars]).T
-        x_bkg = np.array([ak.flatten(data_bkg[var][data_bkg["C_category"]==category]) for var in good_vars]).T
+        x_sig = np.array(
+            [
+                ak.flatten(data_sig[var][data_sig["C_category"] == category])
+                for var in good_vars
+            ]
+        ).T
+        x_bkg = np.array(
+            [
+                ak.flatten(data_bkg[var][data_bkg["C_category"] == category])
+                for var in good_vars
+            ]
+        ).T
 
-        b_w = data_bkg_weight[weight_name][data_bkg["C_category"]==category]
-
+        b_w = data_bkg_weight[weight_name][data_bkg["C_category"] == category]
 
         # WEIGHTS
         num_sig = x_sig.shape[0]
@@ -235,8 +245,12 @@ def get_categorized_data(
 
         logging.info(f"category {category}: number of signal events = {num_sig}")
         logging.info(f"category {category}: number of background events = {num_bkg}")
-        logging.info(f"category {category}: before renormalization, sum of sig weights = {np.sum(s_w)}")
-        logging.info(f"category {category}: before renormalization, sum of bkg weights = {np.sum(b_w)}")
+        logging.info(
+            f"category {category}: before renormalization, sum of sig weights = {np.sum(s_w)}"
+        )
+        logging.info(
+            f"category {category}: before renormalization, sum of bkg weights = {np.sum(b_w)}"
+        )
 
         # Create full x,y,w arrays
 
@@ -247,11 +261,18 @@ def get_categorized_data(
             renorm_background = num_sig / np.sum(b_w)
             s_w *= renorm_signal
             b_w *= renorm_background
-            logging.info(f"category {category}: renormalizing signal weights by {renorm_signal}")
-            logging.info(f"category {category}: renormalizing background weights by {renorm_background}")
-            logging.info(f"category {category}: after renormalization, sum of sig weights = {np.sum(s_w)}")
-            logging.info(f"category {category}: after renormalization, sum of bkg weights = {np.sum(b_w)}")
-
+            logging.info(
+                f"category {category}: renormalizing signal weights by {renorm_signal}"
+            )
+            logging.info(
+                f"category {category}: renormalizing background weights by {renorm_background}"
+            )
+            logging.info(
+                f"category {category}: after renormalization, sum of sig weights = {np.sum(s_w)}"
+            )
+            logging.info(
+                f"category {category}: after renormalization, sum of bkg weights = {np.sum(b_w)}"
+            )
 
         x = np.vstack((x_sig, x_bkg))
         y = np.hstack([np.ones(num_sig), np.zeros(num_bkg)])

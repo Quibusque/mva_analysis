@@ -11,6 +11,7 @@ import tensorflow as tf
 
 from mva_tools.mva_training_tools import (
     train_one_signal_all_methods,
+    train_one_signal_all_methods_categorized,
     load_model,
     methods_list,
 )
@@ -37,9 +38,6 @@ if __name__ == "__main__":
 
     parser.add_argument("--train", action="store_true", help="train models")
     parser.add_argument("--results", action="store_true", help="produce results")
-    group2 = parser.add_mutually_exclusive_group(required=True)
-    group2.add_argument("--new", action="store_true", help="use new vars")
-    group2.add_argument("--old", action="store_true", help="use old vars")
     parser.add_argument(
         "--mass", type=str, help="single mass label of form mN1p0", required=True
     )
@@ -48,10 +46,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     ntuples_json = "source/cfg/ntuples.json"
-    if args.old:
-        vars_json = "source/cfg/vars_old.json"
-    elif args.new:
-        vars_json = "source/cfg/vars_new.json"
+    vars_json = "source/cfg/vars_new.json"
 
     out_dir = args.out_dir
     out_dir = f"{out_dir}/myMVA"
@@ -64,7 +59,7 @@ if __name__ == "__main__":
         weight_name,
         sig_labels,
         bkg_labels,
-    ) = read_files_and_open_trees(ntuples_json, vars_json)
+    ) = read_files_and_open_trees(ntuples_json, vars_json, additional_vars=["C_category"])
     print(f"file reading is done")
     # ┌────────────────────────────────┐
     # │ CHOOSE YOUR MASSES TO TRAIN ON │
@@ -147,41 +142,8 @@ if __name__ == "__main__":
                 plot_corr_matrix(x_train_bkg, x_test_bkg, good_vars, results_dir,f"bkg_cat{category}")
 
                 # TRAIN
-                train_one_signal_all_methods(
-                    x_train, y_train, w_train, methods_list, results_dir, new_vars=args.new
+                train_one_signal_all_methods_categorized(
+                    x_train, y_train, w_train, methods_list, results_dir, new_vars=True, category_index=category
                 )
                 print(f"Training category {category} complete!")
             print(f"Training {sig_label} complete!")
-
-        #          if args.train:
-        # for sig_tree, sig_label in zip(my_sig_trees, my_sig_labels):
-        #     print(f"Training {sig_label} ...")
-        #     results_dir = f"{out_dir}/{sig_label}"
-        #     if not os.path.exists(results_dir):
-        #         os.makedirs(results_dir)
-        #     # GET DATA x-y arrays
-        #     x_train, x_test, y_train, y_test, w_train, w_test = get_data(
-        #         sig_tree, bkg_trees, good_vars, weight_name, test_fraction, rng_seed=0
-        #     )
-        #     log_weights(y_train, y_test, w_train, w_test, sig_label)
-        #     log_num_events(y_train, y_test, sig_label)
-        #     # SIGNAL AND BACKGROUND TRAINING AND TEST SAMPLES
-        #     x_train_sig = x_train[y_train == 1]
-        #     x_train_bkg = x_train[y_train == 0]
-        #     x_test_sig = x_test[y_test == 1]
-        #     x_test_bkg = x_test[y_test == 0]
-        #     # corresponding weights
-        #     w_train_sig = w_train[y_train == 1]
-        #     w_train_bkg = w_train[y_train == 0]
-        #     w_test_sig = w_test[y_test == 1]
-        #     w_test_bkg = w_test[y_test == 0]
-
-        #     #PLOT CORRELATION MATRIX
-            # plot_corr_matrix(x_train_sig, x_test_sig, good_vars, results_dir,"sig")
-            # plot_corr_matrix(x_train_bkg, x_test_bkg, good_vars, results_dir,"bkg")
-
-        #     # TRAIN
-        #     train_one_signal_all_methods(
-        #         x_train, y_train, w_train, methods_list, results_dir, new_vars=args.new
-        #     )
-        #     print(f"Training {sig_label} complete!")
