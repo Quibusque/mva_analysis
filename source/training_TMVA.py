@@ -66,7 +66,7 @@ if __name__ == "__main__":
             good_vars.remove("C_pass_gen_matching")
     elif args.new:
         vars_json = "source/cfg/vars_new.json"
-        good_vars = read_json_file(vars_json)["vars"]
+        good_vars = read_json_file(vars_json)["training_vars"]
         if "C_pass_gen_matching" in good_vars:
             good_vars.remove("C_pass_gen_matching")
 

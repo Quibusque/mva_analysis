@@ -25,6 +25,36 @@
         "C_pi_nValidPixelHits",
         "C_mu1mu2_dr",
         "C_mu2pi_dr",
-        "C_pass_gen_matching"
+        "event",
+        "C_pass_gen_matching",
+        "C_mu_Hnl_charge", 
+        "C_mu_Ds_charge"
+    ],
+    "training_vars": [
+        "C_Ds_pt",
+        "C_Ds_vertex_2DSig_BS",
+        "C_Ds_vertex_cos2D",
+        "C_Ds_vertex_prob",
+        "C_Hnl_vertex_2DSig_BS",
+        "C_Hnl_vertex_cos2D",
+        "C_Hnl_vertex_cos3D",
+        "C_Hnl_vertex_prob",
+        "C_mu_Ds_BS_ips_xy",
+        "C_mu_Ds_pt",
+        "C_mu_Ds_nValidTrackerHits",
+        "C_mu_Ds_nValidPixelHits",
+        "C_mu_Ds_tkIso_R03",
+        "C_mu_Hnl_BS_ips_xy",
+        "C_mu_Hnl_pt",
+        "C_mu_Hnl_nValidTrackerHits",
+        "C_mu_Hnl_nValidPixelHits",
+        "C_mu_Hnl_tkIso_R03",
+        "C_pi_BS_ip_xy",
+        "C_pi_BS_ips_xy",
+        "C_pi_pt",
+        "C_pi_nValidTrackerHits",
+        "C_pi_nValidPixelHits",
+        "C_mu1mu2_dr",
+        "C_mu2pi_dr"
     ]
 }

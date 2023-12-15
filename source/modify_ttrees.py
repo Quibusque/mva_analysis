@@ -59,11 +59,6 @@ if __name__ == "__main__":
     good_vars = read_json_file("source/cfg/vars_new.json")["vars"]
     # add weight and event (normally not included in variables because they are not variables to train on)
     good_vars.append(weight_name)
-    good_vars.append("event")
-    additional_vars = ["C_Hnl_vertex_2DSig_BS", "C_mu_Hnl_charge", "C_mu_Ds_charge"]
-    for var in additional_vars:
-        if var not in good_vars:
-            good_vars.append(var)
 
     # ┌─────────────────────────────────┐
     # │ GEN MATCH SIGNAL AND CATEGORIZE │
@@ -150,6 +145,7 @@ if __name__ == "__main__":
     for background_file, new_background_file in zip(
         background_files, new_background_files
     ):
+        break
         # open the root file and tree with uproot
         file = uproot.open(background_file)
         tree = file[treename]
@@ -165,5 +161,5 @@ if __name__ == "__main__":
                 events.pop(key)
 
         with uproot.recreate(new_background_file) as f:
-            f[treename] = ak.zip(events)
+            f[treename] = events
             print(f"Saved new TTree to {new_background_file}")

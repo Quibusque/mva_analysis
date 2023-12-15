@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # results/myMVA/siglabel0, results/myMVA/siglabel1 get siglabels
     sig_labels = os.listdir(f"{input_dir}/myMVA")
 
-    methods_list = ["keras_shallow","adaboost","XGBoost"]
+    methods_list = ["XGBoost"]
 
     for sig_label in sig_labels:
         print(sig_label)

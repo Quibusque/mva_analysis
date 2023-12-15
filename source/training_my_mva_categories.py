@@ -29,7 +29,7 @@ from mva_tools.mva_response_tools import (
 from mva_tools.mva_plot_tools import plot_corr_matrix
 from my_logging import log_weights, log_histo_weights, log_num_events
 
-methods_list = ["keras_shallow", "adaboost", "XGBoost"]
+methods_list = ["XGBoost"]
 
 
 if __name__ == "__main__":
@@ -59,14 +59,16 @@ if __name__ == "__main__":
         weight_name,
         sig_labels,
         bkg_labels,
-    ) = read_files_and_open_trees(ntuples_json, vars_json, additional_vars=["C_category"])
+    ) = read_files_and_open_trees(
+        ntuples_json, vars_json, additional_vars=["C_category"]
+    )
     print(f"file reading is done")
     # ┌────────────────────────────────┐
     # │ CHOOSE YOUR MASSES TO TRAIN ON │
     # └────────────────────────────────┘
     mass_list = [args.mass]
     my_sig_trees, my_sig_labels = filter_trees(
-        sig_trees, sig_labels, mass_list=mass_list, ctau_list=["ctau1000"]
+        sig_trees, sig_labels, mass_list=mass_list, ctau_list=["ctau10"]
     )
 
     # ┌───────────────┐
@@ -109,7 +111,7 @@ if __name__ == "__main__":
             if not os.path.exists(results_dir):
                 os.makedirs(results_dir)
             # GET DATA, CATEGORIZED
-            categories=[1, 2, 4, 5, 6]
+            categories = [1, 2, 3, 4, 5, 6]
             full_data = get_categorized_data(
                 sig_tree,
                 bkg_trees,
@@ -121,7 +123,13 @@ if __name__ == "__main__":
                 category_list=categories,
             )
             # TRAINING
-            for category,data in zip(categories,full_data):
+            for category, data in zip(categories, full_data):
+                category_dir = f"{results_dir}/cat_{category}"
+
+                # make directory
+                if not os.path.exists(category_dir):
+                    os.makedirs(category_dir)
+
                 print(f"Training category {category} ...")
                 x_train, x_test, y_train, y_test, w_train, w_test = data
                 log_weights(y_train, y_test, w_train, w_test, sig_label)
@@ -137,13 +145,226 @@ if __name__ == "__main__":
                 w_test_sig = w_test[y_test == 1]
                 w_test_bkg = w_test[y_test == 0]
 
-                #PLOT CORRELATION MATRIX
-                plot_corr_matrix(x_train_sig, x_test_sig, good_vars, results_dir,f"sig_cat{category}")
-                plot_corr_matrix(x_train_bkg, x_test_bkg, good_vars, results_dir,f"bkg_cat{category}")
+                # PLOT CORRELATION MATRIX
+                plot_corr_matrix(
+                    x_train_sig, x_test_sig, good_vars, category_dir, "sig"
+                )
+                plot_corr_matrix(
+                    x_train_bkg, x_test_bkg, good_vars, category_dir, "bkg"
+                )
 
                 # TRAIN
-                train_one_signal_all_methods_categorized(
-                    x_train, y_train, w_train, methods_list, results_dir, new_vars=True, category_index=category
+                train_one_signal_all_methods(
+                    x_train, y_train, w_train, methods_list, category_dir, new_vars=True
                 )
                 print(f"Training category {category} complete!")
             print(f"Training {sig_label} complete!")
+    # ┌─────────────────────────────────────────────────────────────────────────────────────┐
+    # │ APPLY MODEL TO TEST SAMPLE AND GET VARIOUS RESULTS (IF ARGUMENT --results IS GIVEN) │
+    # └─────────────────────────────────────────────────────────────────────────────────────┘
+    if args.results:
+        for sig_tree, sig_label in zip(my_sig_trees, my_sig_labels):
+            print(f"Producing results for {sig_label} ...")
+            results_dir = f"{out_dir}/{sig_label}"
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+
+            # GET DATA, CATEGORIZED
+            categories = [1, 2,3, 4, 5, 6]
+            full_data = get_categorized_data(
+                sig_tree,
+                bkg_trees,
+                good_vars,
+                weight_name,
+                test_fraction,
+                rng_seed=42,
+                equalnumevents=True,
+                category_list=categories,
+            )
+            # RESULTS
+            for category, data in zip(categories, full_data):
+                print(f"Producing results for category {category} ...")
+                category_dir = f"{results_dir}/cat_{category}"
+
+                x_train, x_test, y_train, y_test, w_train, w_test = data
+                # SIGNAL AND BACKGROUND TRAINING AND TEST SAMPLES
+                x_train_sig = x_train[y_train == 1]
+                x_train_bkg = x_train[y_train == 0]
+                x_test_sig = x_test[y_test == 1]
+                x_test_bkg = x_test[y_test == 0]
+                # corresponding weights
+                w_train_sig = w_train[y_train == 1]
+                w_train_bkg = w_train[y_train == 0]
+                w_test_sig = w_test[y_test == 1]
+                w_test_bkg = w_test[y_test == 0]
+
+                for method in methods_list:
+                    # PREDICT
+                    model = load_model(f"{category_dir}/{method}_model", method)
+                    y_train_sig_pred = my_predict(model, x_train_sig)
+                    y_train_bkg_pred = my_predict(model, x_train_bkg)
+                    y_test_sig_pred = my_predict(model, x_test_sig)
+                    y_test_bkg_pred = my_predict(model, x_test_bkg)
+
+                    # RESPONSE HISTOGRAMS
+                    (
+                        train_sig_hist,
+                        train_bkg_hist,
+                        test_sig_hist,
+                        test_bkg_hist,
+                        bins,
+                    ) = model_response_hists(
+                        y_train_sig_pred,
+                        y_train_bkg_pred,
+                        y_test_sig_pred,
+                        y_test_bkg_pred,
+                        w_train_sig,
+                        w_train_bkg,
+                        w_test_sig,
+                        w_test_bkg,
+                        normalize=False,
+                        n_bins=50
+                    )
+
+                    # print sum of all histograms to check normalization
+                    logging.info(f"Checking normalization of response histograms ...")
+                    log_histo_weights(
+                        train_sig_hist,
+                        train_bkg_hist,
+                        test_sig_hist,
+                        test_bkg_hist,
+                        sig_label,
+                    )
+
+                    # SAVE RESULTS TO CSV
+                    save_results_to_csv(
+                        bins,
+                        test_sig_hist,
+                        test_bkg_hist,
+                        train_sig_hist,
+                        train_bkg_hist,
+                        method,
+                        category_dir,
+                    )
+
+                    # FEATURE IMPORTANCE
+                    if method == "XGBoost":
+                        importances = model.feature_importances_
+                        var_names = good_vars
+                        importance_dict = {"variables": good_vars}
+                        importance_dict[f"importance_{sig_label}"] = importances
+                        importance_df = pd.DataFrame(importance_dict)
+
+                        # sort by importance
+                        importance_df.sort_values(
+                            by=f"importance_{sig_label}",
+                            ascending=False,
+                            inplace=True,
+                            ignore_index=True,
+                        )
+                        importance_df.to_csv(
+                            f"{category_dir}/importance.csv", index=False
+                        )
+                        print(f"Importance saved to {category_dir}/importance.csv")
+                print(f"Producing results for category {category} complete!")
+            print(f"Producing results for {sig_label} complete!")
+
+    # # ┌─────────────────────────────────────────────────────────────────────────────────────┐
+    # # │ APPLY MODEL TO TEST SAMPLE AND GET VARIOUS RESULTS (IF ARGUMENT --results IS GIVEN) │
+    # # └─────────────────────────────────────────────────────────────────────────────────────┘
+    # if args.results:
+    #     for sig_tree, sig_label in zip(my_sig_trees, my_sig_labels):
+    #         print(f"Producing results for {sig_label} ...")
+    #         results_dir = f"{out_dir}/{sig_label}"
+    #         if not os.path.exists(results_dir):
+    #             os.makedirs(results_dir)
+
+    #         # GET DATA x-y arrays
+    #         x_train, x_test, y_train, y_test, w_train, w_test = get_data(
+    #             sig_tree,
+    #             bkg_trees,
+    #             good_vars,
+    #             weight_name,
+    #             test_fraction,
+    #             rng_seed=42,
+    #             equalnumevents=False,
+    #         )
+    #         # SIGNAL AND BACKGROUND TRAINING AND TEST SAMPLES
+    #         x_train_sig = x_train[y_train == 1]
+    #         x_train_bkg = x_train[y_train == 0]
+    #         x_test_sig = x_test[y_test == 1]
+    #         x_test_bkg = x_test[y_test == 0]
+    #         # corresponding weights
+    #         w_train_sig = w_train[y_train == 1]
+    #         w_train_bkg = w_train[y_train == 0]
+    #         w_test_sig = w_test[y_test == 1]
+    #         w_test_bkg = w_test[y_test == 0]
+
+    #         # print weights total
+    #         logging.info(f"Applying model to test sample ...")
+    #         log_weights(y_train, y_test, w_train, w_test, sig_label)
+
+    #         for method in methods_list:
+    #             # PREDICT
+    #             model = load_model(f"{results_dir}/{method}_model", method)
+    #             y_train_sig_pred = my_predict(model, x_train_sig)
+    #             y_train_bkg_pred = my_predict(model, x_train_bkg)
+    #             y_test_sig_pred = my_predict(model, x_test_sig)
+    #             y_test_bkg_pred = my_predict(model, x_test_bkg)
+
+    #             # RESPONSE HISTOGRAMS
+    #             (
+    #                 train_sig_hist,
+    #                 train_bkg_hist,
+    #                 test_sig_hist,
+    #                 test_bkg_hist,
+    #                 bins,
+    #             ) = model_response_hists(
+    #                 y_train_sig_pred,
+    #                 y_train_bkg_pred,
+    #                 y_test_sig_pred,
+    #                 y_test_bkg_pred,
+    #                 w_train_sig,
+    #                 w_train_bkg,
+    #                 w_test_sig,
+    #                 w_test_bkg,
+    #                 normalize=False,
+    #             )
+
+    #             # print sum of all histograms to check normalization
+    #             logging.info(f"Checking normalization of response histograms ...")
+    #             log_histo_weights(
+    #                 train_sig_hist,
+    #                 train_bkg_hist,
+    #                 test_sig_hist,
+    #                 test_bkg_hist,
+    #                 sig_label,
+    #             )
+
+    #             # SAVE RESULTS TO CSV
+    #             save_results_to_csv(
+    #                 bins,
+    #                 test_sig_hist,
+    #                 test_bkg_hist,
+    #                 train_sig_hist,
+    #                 train_bkg_hist,
+    #                 method,
+    #                 results_dir,
+    #             )
+    #             # FEATURE IMPORTANCE
+    #             if method == "XGBoost":
+    #                 importances = model.feature_importances_
+    #                 var_names = good_vars
+    #                 importance_dict = {"variables": good_vars}
+    #                 importance_dict[f"importance_{sig_label}"] = importances
+    #                 importance_df = pd.DataFrame(importance_dict)
+
+    #                 # sort by importance
+    #                 importance_df.sort_values(
+    #                     by=f"importance_{sig_label}",
+    #                     ascending=False,
+    #                     inplace=True,
+    #                     ignore_index=True,
+    #                 )
+    #                 importance_df.to_csv(f"{results_dir}/importance.csv", index=False)
+    #                 print(f"Importance saved to {results_dir}/importance.csv")

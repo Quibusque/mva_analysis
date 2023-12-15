@@ -15,6 +15,20 @@ from cfg.hnl_mva_tools import read_json_file
 logging.basicConfig(level=logging.INFO)
 
 
+def myprintdict(dict):
+    """
+    This function prints the content of a dictionary in a nice way i.e.
+    key1: [value1, value2, ...] (total values: number_of_values)
+    key2: [value1, value2, ...] (total values: number_of_values)
+    ...
+    last_key: [value1, value2, ...] (total values: number_of_values)
+    total_keys: number_of_keys
+    """
+    for key in dict.keys():
+        print(f"{key}: {dict[key][:2]}  (total values: {len(dict[key])})")
+    print(f"total keys: {len(dict.keys())}")
+
+
 def read_files_and_open_trees(
     ntuples_json: str, vars_json: str, additional_vars: list = []
 ):
@@ -50,7 +64,7 @@ def read_files_and_open_trees(
     ]
 
     # LIST OF VARIABLES TO USE
-    good_vars = read_json_file(vars_json)["vars"]
+    good_vars = read_json_file(vars_json)["training_vars"]
     good_vars += additional_vars
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
@@ -205,7 +219,8 @@ def get_categorized_data(
     weight_name,
     test_fraction,
     rng_seed: int,
-    category_list=[1, 2, 4, 5, 6],
+    validation_fraction: float,
+    category_list=[1, 2,3, 4, 5, 6],
     equalnumevents: bool = True,
 ):
     """ """
@@ -218,15 +233,11 @@ def get_categorized_data(
     data_bkg = uproot.concatenate(bkg_trees, expressions=good_vars, how=dict)
     data_bkg_weight = uproot.concatenate(bkg_trees, expressions=weight_name, how=dict)
 
-    category_list = [1, 2, 4, 5, 6]
     for category in category_list:
         # build x_sig and x_bkg for the category, i.e. data["C_category"]==category
 
         x_sig = np.array(
-            [
-                ak.flatten(data_sig[var][data_sig["C_category"] == category])
-                for var in good_vars
-            ]
+            [data_sig[var][data_sig["C_category"] == category] for var in good_vars]
         ).T
         x_bkg = np.array(
             [
@@ -234,8 +245,14 @@ def get_categorized_data(
                 for var in good_vars
             ]
         ).T
+        background_weights = data_bkg_weight[weight_name]
 
-        b_w = data_bkg_weight[weight_name][data_bkg["C_category"] == category]
+        # weights are single valued, we must broadcast them to match the shape of the data
+        # use data_bkg[good_vars[0]] as ak.broadcast_arrays to match shapes
+        broadcast_bkg_weights = ak.broadcast_arrays(
+            background_weights, data_bkg[good_vars[0]]
+        )[0]
+        b_w = ak.flatten(broadcast_bkg_weights[data_bkg["C_category"] == category])
 
         # WEIGHTS
         num_sig = x_sig.shape[0]
@@ -277,10 +294,25 @@ def get_categorized_data(
         x = np.vstack((x_sig, x_bkg))
         y = np.hstack([np.ones(num_sig), np.zeros(num_bkg)])
         w = np.hstack([s_w, b_w])
-
-        x_train, x_test, y_train, y_test, w_train, w_test = train_test_split(
-            x, y, w, test_size=test_fraction, random_state=rng_seed
-        )
-        data.append((x_train, x_test, y_train, y_test, w_train, w_test))
+        if validation_fraction is None:
+            x_train, x_test, y_train, y_test, w_train, w_test = train_test_split(
+                x, y, w, test_size=test_fraction, random_state=rng_seed
+            )
+            data.append((x_train, x_test, y_train, y_test, w_train, w_test))
+        else:
+            x_train, x_test, y_train, y_test, w_train, w_test = train_test_split(
+                x, y, w, test_size=test_fraction, random_state=rng_seed
+            )
+            #the apparently weird test_size is to make percentages work properly
+            #e.g. if test=0.2 and validation=0.1, 
+            #then the validation set is 0.1/(1-0.2)=0.125 of the training set
+            x_train, x_val, y_train, y_val, w_train, w_val = train_test_split(
+                x_train,
+                y_train,
+                w_train,
+                test_size=validation_fraction/(1-test_fraction),
+                random_state=rng_seed,
+            )
+            data.append((x_train, x_val, x_test, y_train, y_val, y_test, w_train, w_val, w_test))
 
     return data
