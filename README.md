@@ -37,6 +37,7 @@ The methods you can run on are the ones listed in the
 - ``keras_shallow``: Shallow Neural Network with tensorflow.keras
 - ``keras_deep``: Deep Neural Network with tensorflow.keras
 - ``XGBoost``: XGBoost
+
 You can modify the hyperparameters for each method in the 
 ``source/cfg/hyperparameters.json`` file.
 ### Running the code
@@ -47,6 +48,7 @@ The arguments are:
 - ``--new``: use new variables (either this or ``--old`` is required)
 - ``--old``: use old variables (either this or ``--new`` is required)
 - ``--out_dir``: output directory (required)
+
 This runs a python implementation with some multi-variate analysis methods.
 Some modifications can be done on the ``source/training_my_mva.py`` file e.g.
 choose which methods to run.
