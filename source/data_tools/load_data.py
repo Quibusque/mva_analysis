@@ -30,7 +30,7 @@ def myprintdict(dict):
 
 
 def read_files_and_open_trees(
-    ntuples_json: str, vars_json: str, additional_vars: list = []
+    ntuples_json: str, vars_json: str
 ):
     """
     This function reads the ntuples_json file which contains the file names
@@ -63,16 +63,12 @@ def read_files_and_open_trees(
         s[s.rfind("QCD_Pt-") : s.rfind("_MuEnriched")] for s in background_file_names
     ]
 
-    # LIST OF VARIABLES TO USE
-    good_vars = read_json_file(vars_json)["training_vars"]
-    good_vars += additional_vars
-    if "C_pass_gen_matching" in good_vars:
-        good_vars.remove("C_pass_gen_matching")
+
 
     sig_trees = [uproot.open(f)[treename] for f in signal_file_names]
     bkg_trees = [uproot.open(f)[treename] for f in background_file_names]
 
-    return sig_trees, bkg_trees, good_vars, weight_name, sig_labels, bkg_labels
+    return sig_trees, bkg_trees, weight_name, sig_labels, bkg_labels
 
 
 def filter_trees(trees, tree_labels, mass_list, ctau_list):
@@ -219,40 +215,80 @@ def get_categorized_data(
     weight_name,
     test_fraction,
     rng_seed: int,
-    validation_fraction: float,
+    validation_fraction: float = None,
     category_list=[1, 2,3, 4, 5, 6],
     equalnumevents: bool = True,
+    scale_factor_vars = None,
+    category_var = "C_category",
 ):
-    """ """
-    logging.info(f"get_categorized_data called with equalnumevents = {equalnumevents}")
+    logging.info("get_categorized_data called with equalnumevents = {equalnumevents}")
+    assert category_var not in good_vars
+    good_vars.append(category_var)
+    C_cat_index = good_vars.index(category_var)
 
     data = []
 
+
     # Get data from trees, in form of dictionaries
-    data_sig = uproot.concatenate(sig_tree, expressions=good_vars, how=dict)
-    data_bkg = uproot.concatenate(bkg_trees, expressions=good_vars, how=dict)
+    data_sig = uproot.concatenate(sig_tree, expressions=good_vars+scale_factor_vars, how=dict)
+    data_bkg = uproot.concatenate(bkg_trees, expressions=good_vars+scale_factor_vars, how=dict)
     data_bkg_weight = uproot.concatenate(bkg_trees, expressions=weight_name, how=dict)
 
+
     for category in category_list:
-        # build x_sig and x_bkg for the category, i.e. data["C_category"]==category
+        # build x_sig and x_bkg for the category, i.e. data[category_var]==category
 
         x_sig = np.array(
-            [data_sig[var][data_sig["C_category"] == category] for var in good_vars]
+            [data_sig[var][data_sig[category_var] == category] for var in good_vars]
         ).T
         x_bkg = np.array(
             [
-                ak.flatten(data_bkg[var][data_bkg["C_category"] == category])
+                ak.flatten(data_bkg[var][data_bkg[category_var] == category])
                 for var in good_vars
             ]
         ).T
+
+        #pop the category_var column
+        x_sig = np.delete(x_sig, C_cat_index, axis=1)
+        x_bkg = np.delete(x_bkg, C_cat_index, axis=1)
+
+
+        #┌─────────────────────┐
+        #│ BUILD SCALE FACTORS │
+        #└─────────────────────┘
+        sig_sf = np.array(
+            [data_sig[scale_factor_vars[0]][data_sig[category_var] == category]]
+        ).T
+        for scale_factor_var in scale_factor_vars[1:]:
+            sig_sf *= np.array(
+                [data_sig[scale_factor_var][data_sig[category_var] == category]]
+            ).T
+        bkg_sf = np.array(
+            [
+                ak.flatten(data_bkg[scale_factor_vars[0]][data_bkg[category_var] == category])
+            ]
+        ).T
+        for scale_factor_var in scale_factor_vars[1:]:
+            bkg_sf *= np.array(
+                [
+                    ak.flatten(data_bkg[scale_factor_var][data_bkg[category_var] == category])
+                ]
+            ).T
+
+        #flatten sig_sf and bkg_sf
+        sig_sf = np.array(sig_sf).flatten()
+        bkg_sf = np.array(bkg_sf).flatten()
+
+
         background_weights = data_bkg_weight[weight_name]
+
 
         # weights are single valued, we must broadcast them to match the shape of the data
         # use data_bkg[good_vars[0]] as ak.broadcast_arrays to match shapes
         broadcast_bkg_weights = ak.broadcast_arrays(
             background_weights, data_bkg[good_vars[0]]
         )[0]
-        b_w = ak.flatten(broadcast_bkg_weights[data_bkg["C_category"] == category])
+        b_w = ak.flatten(broadcast_bkg_weights[data_bkg[category_var] == category])
 
         # WEIGHTS
         num_sig = x_sig.shape[0]
@@ -260,8 +296,13 @@ def get_categorized_data(
         b_w = np.array(b_w)
         s_w = np.ones(num_sig)
 
-        logging.info(f"category {category}: number of signal events = {num_sig}")
-        logging.info(f"category {category}: number of background events = {num_bkg}")
+        #ADD SCALE FACTORS TO WEIGHTS
+        s_w *= sig_sf 
+        b_w *= bkg_sf 
+        
+
+        logging.info(f"category {category}: shape of x_sig = {x_sig.shape}")
+        logging.info(f"category {category}: shape of x_bkg = {x_bkg.shape}")
         logging.info(
             f"category {category}: before renormalization, sum of sig weights = {np.sum(s_w)}"
         )
@@ -315,4 +356,5 @@ def get_categorized_data(
             )
             data.append((x_train, x_val, x_test, y_train, y_val, y_test, w_train, w_val, w_test))
 
+    good_vars.remove(category_var)
     return data

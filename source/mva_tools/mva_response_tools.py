@@ -133,7 +133,7 @@ def calculate_significance(tp_arr, fp_arr):
         tp_arr,
         np.sqrt(tp_arr + fp_arr),
         where=((tp_arr + fp_arr) != 0),
-        out=np.zeros_like(tp_arr),
+        out=np.ones_like(tp_arr)*np.nan,
     )
 
     return significance
@@ -144,7 +144,7 @@ def tpr(tp_arr, fn_arr):
         tp_arr,
         tp_arr + fn_arr,
         where=((tp_arr + fn_arr) != 0),
-        out=np.zeros_like(tp_arr),
+        out=np.ones_like(tp_arr)*np.nan,
     )
 
 
@@ -153,7 +153,7 @@ def fpr(fp_arr, tn_arr):
         fp_arr,
         fp_arr + tn_arr,
         where=((fp_arr + tn_arr) != 0),
-        out=np.zeros_like(fp_arr),
+        out=np.ones_like(fp_arr)*np.nan,
     )
 
 
@@ -162,7 +162,7 @@ def precision(tp_arr, fp_arr):
         tp_arr,
         tp_arr + fp_arr,
         where=((tp_arr + fp_arr) != 0),
-        out=np.zeros_like(tp_arr),
+        out=np.ones_like(tp_arr)*np.nan,
     )
 
 

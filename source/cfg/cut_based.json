@@ -1,0 +1,14 @@
+{
+    "mN1p8_ctau10": {"sig_eff": 0.629, "bkg_eff": 0.021},
+    "mN1p8_ctau100": {"sig_eff": 0.693, "bkg_eff": 0.021},
+    "mN1p8_ctau1000": {"sig_eff": 0.6, "bkg_eff": 0.021},
+    "mN1p5_ctau10": {"sig_eff": 0.679, "bkg_eff": 0.021},
+    "mN1p5_ctau100": {"sig_eff": 0.688, "bkg_eff": 0.021},
+    "mN1p5_ctau1000": {"sig_eff": 0.653, "bkg_eff": 0.021},
+    "mN1p25_ctau10": {"sig_eff": 0.624, "bkg_eff": 0.021},
+    "mN1p25_ctau100": {"sig_eff": 0.628, "bkg_eff": 0.021},
+    "mN1p25_ctau1000": {"sig_eff": 0.654, "bkg_eff": 0.021},
+    "mN1p0_ctau10": {"sig_eff": 0.547, "bkg_eff": 0.021},
+    "mN1p0_ctau100": {"sig_eff": 0.59, "bkg_eff": 0.021},
+    "mN1p0_ctau1000": {"sig_eff": 0.538, "bkg_eff": 0.021}
+}

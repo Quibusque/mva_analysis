@@ -5,6 +5,7 @@
         "hidden_layers": [
             64
         ],
+        "early_stopping_rounds": 3,
         "filename_model_new": "TMVA_keras_models/keras_shallow_model_new_TMVA.h5",
         "filename_trained_model_new": "TMVA_keras_models/keras_shallow_model_new_TMVA_trained_model.h5",
         "filename_model_old": "TMVA_keras_models/keras_shallow_model_old_TMVA.h5",
@@ -17,15 +18,19 @@
             64,
             128,
             16
-        ]
+        ],
+        "early_stopping_rounds": 3
     },
     "XGBoost": {
         "max_depth": 3,
-        "n_estimators": 150
+        "n_estimators": 150,
+        "early_stopping_rounds": 5
     },
     "adaboost": {
         "max_depth": 3,
-        "n_estimators": 10,
-        "min_samples_leaf": 0.025
+        "min_n_estimators": 5,
+        "n_estimators": 20,
+        "min_samples_leaf": 0.025,
+        "early_stopping_rounds": 3
     }
 }

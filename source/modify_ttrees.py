@@ -60,6 +60,10 @@ if __name__ == "__main__":
     # add weight and event (normally not included in variables because they are not variables to train on)
     good_vars.append(weight_name)
 
+    scale_factors = read_json_file("source/cfg/vars_new.json")["scale_factors"]
+    for scale_factor in scale_factors:
+        good_vars.append(scale_factor)
+
     # ┌─────────────────────────────────┐
     # │ GEN MATCH SIGNAL AND CATEGORIZE │
     # └─────────────────────────────────┘
@@ -145,7 +149,6 @@ if __name__ == "__main__":
     for background_file, new_background_file in zip(
         background_files, new_background_files
     ):
-        break
         # open the root file and tree with uproot
         file = uproot.open(background_file)
         tree = file[treename]
