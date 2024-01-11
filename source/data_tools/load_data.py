@@ -47,7 +47,6 @@ def read_files_and_open_trees(
         sig_trees: list of signal trees
         bkg_trees: list of background trees
         good_vars: list of variables to use
-        weight_name: name of the weight branch
         sig_labels: list of signal labels
         bkg_labels: list of background labels
     """
@@ -221,7 +220,7 @@ def get_categorized_data(
     scale_factor_vars = None,
     category_var = "C_category",
 ):
-    logging.info("get_categorized_data called with equalnumevents = {equalnumevents}")
+    logging.info(f"get_categorized_data called with equalnumevents = {equalnumevents}")
     assert category_var not in good_vars
     good_vars.append(category_var)
     C_cat_index = good_vars.index(category_var)

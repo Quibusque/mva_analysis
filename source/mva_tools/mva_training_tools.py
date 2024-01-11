@@ -39,7 +39,8 @@ def build_and_train_xgboost(
     bst = XGBClassifier(
         max_depth=max_depth,
         n_estimators=n_estimators,
-        eval_metric="logloss",
+        eval_metric="error",
+        objective="binary:logistic",
         early_stopping_rounds=early_stopping_rounds,
     )
 
@@ -50,7 +51,7 @@ def build_and_train_xgboost(
             sample_weight=w_train,
             eval_set=[(x_val, y_val)],
             sample_weight_eval_set=[w_val],
-            verbose=False,
+            verbose=True,
         )
     else:
         bst.fit(x_train, y_train, sample_weight=w_train)

@@ -34,8 +34,9 @@ from my_logging import log_weights, log_histo_weights, log_num_events
 from mva_tools.mva_plot_tools import plot_response_hists, compute_roc, plot_and_save_roc
 
 
-methods_list = ["adaboost", "XGBoost"]
+methods_list = ["XGBoost"]
 categories = [1, 2, 3, 4, 5, 6]
+rng_seed = 10
 
 
 if __name__ == "__main__":
@@ -59,7 +60,6 @@ if __name__ == "__main__":
     out_dir = args.out_dir
     out_dir = f"{out_dir}/myMVA"
 
-
     # open trees from root files
     (
         sig_trees,
@@ -67,9 +67,7 @@ if __name__ == "__main__":
         weight_name,
         sig_labels,
         bkg_labels,
-    ) = read_files_and_open_trees(
-        ntuples_json, vars_json
-    )
+    ) = read_files_and_open_trees(ntuples_json, vars_json)
     # LIST OF VARIABLES TO USE
     good_vars = read_json_file(vars_json)["training_vars"]
     scale_factor_vars = read_json_file(vars_json)["scale_factors"]
@@ -107,7 +105,7 @@ if __name__ == "__main__":
                 good_vars,
                 weight_name,
                 test_fraction,
-                rng_seed=42,
+                rng_seed=rng_seed,
                 equalnumevents=True,
                 category_list=categories,
                 validation_fraction=validation_fraction,
@@ -180,14 +178,13 @@ if __name__ == "__main__":
                 os.makedirs(results_dir)
 
             # GET DATA, CATEGORIZED
-            categories = [1, 2, 3, 4, 5, 6]
             full_data = get_categorized_data(
                 sig_tree,
                 bkg_trees,
                 good_vars,
                 weight_name,
                 test_fraction,
-                rng_seed=42,
+                rng_seed=rng_seed,
                 equalnumevents=True,
                 category_list=categories,
                 validation_fraction=validation_fraction,
@@ -291,9 +288,9 @@ if __name__ == "__main__":
                 print(f"Producing results for category {category} complete!")
             print(f"Producing results for {sig_label} complete!")
         print(f"Producing results complete!")
-    #┌────────────┐
-    #│ MAKE PLOTS │
-    #└────────────┘
+    # ┌────────────┐
+    # │ MAKE PLOTS │
+    # └────────────┘
     if args.plots:
         print(f"Making plots ...")
         for sig_label in my_sig_labels:
@@ -350,6 +347,8 @@ if __name__ == "__main__":
                         plots_dir,
                         log_scale=log_scale,
                     )
-                plot_and_save_roc(roc_data, methods_list,sig_label,category, plots_dir, xlim=(0, 1.02))
+                plot_and_save_roc(
+                    roc_data, methods_list, sig_label, category, plots_dir
+                )
             print(f"Making plots for {sig_label} complete!")
         print(f"Making plots complete!")

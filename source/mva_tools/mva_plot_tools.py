@@ -107,6 +107,10 @@ def compute_roc(tp_arr, fp_arr, fn_arr, tn_arr):
     x_values = sig_eff
     y_values = 1 - bkg_eff
 
+    #round to 4 decimal places
+    x_values = np.round(x_values, 4)
+    y_values = np.round(y_values, 4)
+
     #if there is no point at (1,0) or (0,1), add it
     # (this is needed for the ROC curve auc to make sense)
     if (1.,0.) not in zip(x_values, y_values):
@@ -132,20 +136,6 @@ def compute_roc(tp_arr, fp_arr, fn_arr, tn_arr):
 
 def plot_and_save_roc(roc_data, methods, sig_label, category, out_dir: str, xlim: tuple = (0.5, 1.02), cut_based_json: str = "source/cfg/cut_based.json"):
 
-    with open(cut_based_json, "r") as file:
-        cut_based_dict = json.load(file)
-        cut_based_sig_eff = cut_based_dict[sig_label]["sig_eff"]
-        cut_based_bkg_rej = 1 - cut_based_dict[sig_label]["bkg_eff"]
-        plt.scatter(
-            cut_based_sig_eff,
-            cut_based_bkg_rej,
-            label="cut-based",
-            color="black",
-            marker="x",
-        )
-        #also draw a thin grey horizontal line with y=cut_based_bkg_rej
-        plt.axhline(y=cut_based_bkg_rej, color="black", linewidth=2, alpha=0.5)
-
     for method, (x_values, y_values) in zip(methods, roc_data):
         auc = np.trapz(y_values, x_values)
         plt.plot(
@@ -156,12 +146,29 @@ def plot_and_save_roc(roc_data, methods, sig_label, category, out_dir: str, xlim
         )
 
 
-        #make a scatter plot, but with small dots
+        # #make a scatter plot, but with small dots
+        # plt.scatter(
+        #     x_values,
+        #     y_values,
+        #     s=10,
+        # )
+
+    with open(cut_based_json, "r") as file:
+        cut_based_dict = json.load(file)
+        cut_based_sig_eff = cut_based_dict[sig_label]["sig_eff"]
+        cut_based_bkg_rej = 1 - cut_based_dict[sig_label]["bkg_eff"]
         plt.scatter(
-            x_values,
-            y_values,
-            s=10,
+            cut_based_sig_eff,
+            cut_based_bkg_rej,
+            label="cut-based",
+            color="black",
+            marker="x",
+            s=100,
         )
+        #also draw a thin grey horizontal line with y=cut_based_bkg_rej
+        plt.axhline(y=cut_based_bkg_rej, color="black", linewidth=2, alpha=0.5)
+        #also draw a thin grey vertical line with x=cut_based_sig_eff
+        plt.axvline(x=cut_based_sig_eff, color="black", linewidth=2, alpha=0.5)
 
 
     plt.xlabel("Signal Efficiency")

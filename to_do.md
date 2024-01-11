@@ -14,3 +14,15 @@ table for all the combinations, to number them
 |    **Sig < 50**    |       1       |         4         |
 | **50 < Sig < 150** |       2       |         5         |
 |    **Sig > 150**   |       3       |         6         |
+
+
+
+
+## notes 21/12
+assicurati di aver tolto C_Ds_vertex_2DSig_BS
+
+distribuzioni variabili vs altra variabile con le top variabili
+per vedere la distribuzione multivariata se è molto separata
+
+applicare l'algoritmo sulle sideband dei dati per vedere
+la performance
