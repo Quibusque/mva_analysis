@@ -70,6 +70,7 @@ if __name__ == "__main__":
     ) = read_files_and_open_trees(ntuples_json, vars_json)
     # LIST OF VARIABLES TO USE
     good_vars = read_json_file(vars_json)["training_vars"]
+    training_vars = read_json_file(vars_json)["training_vars"]
     scale_factor_vars = read_json_file(vars_json)["scale_factors"]
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
@@ -103,6 +104,7 @@ if __name__ == "__main__":
                 sig_tree,
                 bkg_trees,
                 good_vars,
+                training_vars,
                 weight_name,
                 test_fraction,
                 rng_seed=rng_seed,
@@ -111,6 +113,8 @@ if __name__ == "__main__":
                 validation_fraction=validation_fraction,
                 scale_factor_vars=scale_factor_vars,
             )
+            print(f"Data is ready@@@@@@@@@@@!")
+            print("@@@@@@@@@@@@@@@@@@ ")
             # TRAINING
             for category, data in zip(categories, full_data):
                 category_dir = f"{results_dir}/cat_{category}"

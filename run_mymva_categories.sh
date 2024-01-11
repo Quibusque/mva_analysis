@@ -6,7 +6,7 @@ OUT_DIR=results_categories
 mkdir -p $OUT_DIR
 
 #mass list ("mN1p5" "mN1p0")
-mass_list=("mN1p0" "mN1p25" "mN1p5" "mN1p8")
+mass_list=("mN1p0")
 
 for mass in "${mass_list[@]}"
 do

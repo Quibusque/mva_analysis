@@ -29,9 +29,7 @@ def myprintdict(dict):
     print(f"total keys: {len(dict.keys())}")
 
 
-def read_files_and_open_trees(
-    ntuples_json: str, vars_json: str
-):
+def read_files_and_open_trees(ntuples_json: str, vars_json: str):
     """
     This function reads the ntuples_json file which contains the file names
     for signal and background ntuples, the treename, and the weight name.
@@ -52,8 +50,8 @@ def read_files_and_open_trees(
     """
     ntuples = read_json_file(ntuples_json)
     ########AIUTO
-    signal_file_names = ntuples["signal_new"]
-    background_file_names = ntuples["background_new"]
+    signal_file_names = ntuples["signal"]
+    background_file_names = ntuples["background"]
     treename = ntuples["treename"]
     weight_name = ntuples["weight_name"]
 
@@ -61,8 +59,6 @@ def read_files_and_open_trees(
     bkg_labels = [
         s[s.rfind("QCD_Pt-") : s.rfind("_MuEnriched")] for s in background_file_names
     ]
-
-
 
     sig_trees = [uproot.open(f)[treename] for f in signal_file_names]
     bkg_trees = [uproot.open(f)[treename] for f in background_file_names]
@@ -207,14 +203,80 @@ def get_data(
     return x_train, x_test, y_train, y_test, w_train, w_test
 
 
+def categorize_data(
+    data,
+    category_list,
+    category_var: str,
+    default_category=0,
+):
+    conditions = [
+        (data["C_Hnl_vertex_2DSig_BS"] < 50)
+        & (data["C_mu_Hnl_charge"] == data["C_mu_Ds_charge"]),
+        ((data["C_Hnl_vertex_2DSig_BS"] > 50) & (data["C_Hnl_vertex_2DSig_BS"] < 150))
+        & (data["C_mu_Hnl_charge"] == data["C_mu_Ds_charge"]),
+        (data["C_Hnl_vertex_2DSig_BS"] > 150)
+        & (data["C_mu_Hnl_charge"] == data["C_mu_Ds_charge"]),
+        (data["C_Hnl_vertex_2DSig_BS"] < 50)
+        & (data["C_mu_Hnl_charge"] != data["C_mu_Ds_charge"]),
+        ((data["C_Hnl_vertex_2DSig_BS"] > 50) & (data["C_Hnl_vertex_2DSig_BS"] < 150))
+        & (data["C_mu_Hnl_charge"] != data["C_mu_Ds_charge"]),
+        (data["C_Hnl_vertex_2DSig_BS"] > 150)
+        & (data["C_mu_Hnl_charge"] != data["C_mu_Ds_charge"]),
+    ]
+
+    # Use ak.where to select categories based on conditions
+    data[category_var] = ak.where(
+        conditions[0],
+        category_list[0],
+        ak.where(
+            conditions[1],
+            category_list[1],
+            ak.where(
+                conditions[2],
+                category_list[2],
+                ak.where(
+                    conditions[3],
+                    category_list[3],
+                    ak.where(
+                        conditions[4],
+                        category_list[4],
+                        ak.where(conditions[5], category_list[5], default_category),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    # print data[category_var][:10] to check that it worked
+    print(data[category_var][:10])
+
+    return data
+
+
+def gen_match_data(data, gen_matching_var: str):
+    mask = data[gen_matching_var] == 1
+    masked_data = {key: ak.mask(data[key], mask) for key in data}
+    
+    # Drop None values from each array in masked_data
+    masked_data = {key: ak.drop_none(value) for key, value in masked_data.items()}
+    
+    for key in masked_data.keys():
+        masked_data[key] = masked_data[key][ak.count(masked_data[key], axis=-1) > 0]
+    
+    return masked_data
+
+
 def get_categorized_data(
     sig_tree,
     bkg_trees,
     good_vars,
+    training_vars,
     weight_name,
     test_fraction,
     rng_seed: int,
     validation_fraction: float = None,
+    gen_match_signal: bool = True,
+    gen_matching_var: str = "C_pass_gen_matching",
     category_list=[1, 2,3, 4, 5, 6],
     equalnumevents: bool = True,
     scale_factor_vars = None,
@@ -222,65 +284,131 @@ def get_categorized_data(
 ):
     logging.info(f"get_categorized_data called with equalnumevents = {equalnumevents}")
     assert category_var not in good_vars
-    good_vars.append(category_var)
-    C_cat_index = good_vars.index(category_var)
 
     data = []
 
+    additional_vars = ["C_Hnl_vertex_2DSig_BS", "C_mu_Hnl_charge", "C_mu_Ds_charge"]
 
     # Get data from trees, in form of dictionaries
-    data_sig = uproot.concatenate(sig_tree, expressions=good_vars+scale_factor_vars, how=dict)
-    data_bkg = uproot.concatenate(bkg_trees, expressions=good_vars+scale_factor_vars, how=dict)
+    data_sig = uproot.concatenate(
+        sig_tree,
+        expressions=good_vars
+        + scale_factor_vars
+        + additional_vars
+        + [gen_matching_var],
+        how=dict,
+    )
+    data_bkg = uproot.concatenate(
+        bkg_trees, expressions=good_vars + scale_factor_vars + additional_vars, how=dict
+    )
     data_bkg_weight = uproot.concatenate(bkg_trees, expressions=weight_name, how=dict)
 
+    data_sig = gen_match_data(data_sig, gen_matching_var)
+
+    data_sig = categorize_data(
+        data_sig,
+        category_list,
+        category_var,
+        default_category=0,
+    )
+    data_bkg = categorize_data(
+        data_bkg, category_list, category_var, default_category=0
+    )
+
+    # check that the default_category is not used
+    print(
+        f"number of signal events in default category = {np.sum(data_sig[category_var]==0)}"
+    )
+    print(
+        f"number of background events in default category = {np.sum(data_bkg[category_var]==0)}"
+    )
+
+    # pop away the additional_vars that are not in good_vars
+    # because they must not be used in the training
+    for var in additional_vars:
+        if var not in good_vars:
+            data_sig.pop(var)
+            data_bkg.pop(var)
+    data_sig.pop(gen_matching_var)
+    # find the index of the category_var in data_sig.keys() and data_bkg.keys()
+    # this is needed later to remove the category_var column
+    C_cat_index_sig = list(data_sig.keys()).index(category_var)
+    C_cat_index_bkg = list(data_bkg.keys()).index(category_var)
+    print(f"C_cat_index_sig = {C_cat_index_sig}")
+    print(f"C_cat_index_bkg = {C_cat_index_bkg}")
+    print(f"length of arrays in data_sig = {[len(data_sig[key]) for key in data_sig.keys()]}")
+    print(f"length of arrays in data_bkg = {[len(data_bkg[key]) for key in data_bkg.keys()]}")
+    #take first length and find vars with different length
+    first_length_sig = len(data_sig[list(data_sig.keys())[0]])
+    first_length_bkg = len(data_bkg[list(data_bkg.keys())[0]])
+    for key in data_sig.keys():
+        if len(data_sig[key]) != first_length_sig:
+            print(f"length of {key} = {len(data_sig[key])}")
+    for key in data_bkg.keys():
+        if len(data_bkg[key]) != first_length_bkg:
+            print(f"length of {key} = {len(data_bkg[key])}")
 
     for category in category_list:
         # build x_sig and x_bkg for the category, i.e. data[category_var]==category
 
+        mask_sig = data_sig[category_var] == category
+        mask_bkg = data_bkg[category_var] == category
+
+        print(f"mask_sig length = {len(mask_sig)}, mask_sig = {mask_sig}")
+        print(f"mask_bkg length = {len(mask_bkg)}, mask_bkg = {mask_bkg}")
+
         x_sig = np.array(
-            [data_sig[var][data_sig[category_var] == category] for var in good_vars]
+            [
+                ak.flatten(data_sig[var][mask_sig])
+                for var in training_vars
+            ]
         ).T
         x_bkg = np.array(
             [
-                ak.flatten(data_bkg[var][data_bkg[category_var] == category])
-                for var in good_vars
+                ak.flatten(data_bkg[var][mask_bkg])
+                for var in training_vars
             ]
         ).T
 
-        #pop the category_var column
-        x_sig = np.delete(x_sig, C_cat_index, axis=1)
-        x_bkg = np.delete(x_bkg, C_cat_index, axis=1)
-
-
-        #┌─────────────────────┐
-        #│ BUILD SCALE FACTORS │
-        #└─────────────────────┘
+        # ┌─────────────────────┐
+        # │ BUILD SCALE FACTORS │
+        # └─────────────────────┘
         sig_sf = np.array(
-            [data_sig[scale_factor_vars[0]][data_sig[category_var] == category]]
+            [
+                ak.flatten(
+                    data_sig[scale_factor_vars[0]][data_sig[category_var] == category]
+                )
+            ]
         ).T
         for scale_factor_var in scale_factor_vars[1:]:
             sig_sf *= np.array(
-                [data_sig[scale_factor_var][data_sig[category_var] == category]]
+                [
+                    ak.flatten(
+                        data_sig[scale_factor_var][data_sig[category_var] == category]
+                    )
+                ]
             ).T
         bkg_sf = np.array(
             [
-                ak.flatten(data_bkg[scale_factor_vars[0]][data_bkg[category_var] == category])
+                ak.flatten(
+                    data_bkg[scale_factor_vars[0]][data_bkg[category_var] == category]
+                )
             ]
         ).T
         for scale_factor_var in scale_factor_vars[1:]:
             bkg_sf *= np.array(
                 [
-                    ak.flatten(data_bkg[scale_factor_var][data_bkg[category_var] == category])
+                    ak.flatten(
+                        data_bkg[scale_factor_var][data_bkg[category_var] == category]
+                    )
                 ]
             ).T
 
-        #flatten sig_sf and bkg_sf
+        # flatten sig_sf and bkg_sf
         sig_sf = np.array(sig_sf).flatten()
         bkg_sf = np.array(bkg_sf).flatten()
 
-
         background_weights = data_bkg_weight[weight_name]
-
 
         # weights are single valued, we must broadcast them to match the shape of the data
         # use data_bkg[good_vars[0]] as ak.broadcast_arrays to match shapes
@@ -295,10 +423,9 @@ def get_categorized_data(
         b_w = np.array(b_w)
         s_w = np.ones(num_sig)
 
-        #ADD SCALE FACTORS TO WEIGHTS
-        s_w *= sig_sf 
-        b_w *= bkg_sf 
-        
+        # ADD SCALE FACTORS TO WEIGHTS
+        s_w *= sig_sf
+        b_w *= bkg_sf
 
         logging.info(f"category {category}: shape of x_sig = {x_sig.shape}")
         logging.info(f"category {category}: shape of x_bkg = {x_bkg.shape}")
@@ -343,17 +470,18 @@ def get_categorized_data(
             x_train, x_test, y_train, y_test, w_train, w_test = train_test_split(
                 x, y, w, test_size=test_fraction, random_state=rng_seed
             )
-            #the apparently weird test_size is to make percentages work properly
-            #e.g. if test=0.2 and validation=0.1, 
-            #then the validation set is 0.1/(1-0.2)=0.125 of the training set
+            # the apparently weird test_size is to make percentages work properly
+            # e.g. if test=0.2 and validation=0.1,
+            # then the validation set is 0.1/(1-0.2)=0.125 of the training set
             x_train, x_val, y_train, y_val, w_train, w_val = train_test_split(
                 x_train,
                 y_train,
                 w_train,
-                test_size=validation_fraction/(1-test_fraction),
+                test_size=validation_fraction / (1 - test_fraction),
                 random_state=rng_seed,
             )
-            data.append((x_train, x_val, x_test, y_train, y_val, y_test, w_train, w_val, w_test))
+            data.append(
+                (x_train, x_val, x_test, y_train, y_val, y_test, w_train, w_val, w_test)
+            )
 
-    good_vars.remove(category_var)
     return data
