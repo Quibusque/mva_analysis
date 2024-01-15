@@ -26,3 +26,19 @@ per vedere la distribuzione multivariata se è molto separata
 
 applicare l'algoritmo sulle sideband dei dati per vedere
 la performance
+
+## notes 12/01
+
+girare su categorie ctau più alto per vedere se viene meglio la statistica
+delle categorie ad alto displacement
+
+togliamo variabile C_pi_BS_ip_xy
+rimettere variabili di hit
+
+fare i plot segnale-fondo divisi per categorie
+
+fare i plot delle loss over epoch
+
+PER PRESENTAZIONE:
+ fare plot carini, aggiungere puntino del working
+ point in base alla significance

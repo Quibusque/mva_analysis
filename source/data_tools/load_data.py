@@ -275,7 +275,6 @@ def get_categorized_data(
     test_fraction,
     rng_seed: int,
     validation_fraction: float = None,
-    gen_match_signal: bool = True,
     gen_matching_var: str = "C_pass_gen_matching",
     category_list=[1, 2,3, 4, 5, 6],
     equalnumevents: bool = True,
@@ -485,3 +484,78 @@ def get_categorized_data(
             )
 
     return data
+
+
+def get_categorized_test_data(tree,training_vars,
+    category_list=[1, 2,3, 4, 5, 6],
+    category_var = "C_category"
+):
+    logging.info(f"get_categorized_test_data called with categories = {category_list}")
+    assert category_var not in training_vars
+
+    data_arr = []
+
+    additional_vars = ["C_Hnl_vertex_2DSig_BS", "C_mu_Hnl_charge", "C_mu_Ds_charge"]
+
+    # Get data from trees, in form of dictionaries
+    data = uproot.concatenate(
+        tree,
+        expressions=training_vars
+        + additional_vars,
+        how=dict,
+    )
+
+    print(f"type of data['C_Ds_pt']= {type(data['C_Ds_pt'])}")
+    print(f"ak.type(data['C_Ds_pt'])= {ak.type(data['C_Ds_pt'])}")
+    data = categorize_data(
+        data,
+        category_list,
+        category_var,
+        default_category=0,
+    )
+
+    # check that the default_category is not used
+    print(
+        f"number of events in default category = {np.sum(data[category_var]==0)}"
+    )
+
+    # pop away the additional_vars that are not in good_vars
+    # because they must not be used in the training
+    for var in additional_vars:
+        if var not in training_vars:
+            data.pop(var)
+    # find the index of the category_var in data.keys()
+    # this is needed later to remove the category_var column
+    C_cat_index = list(data.keys()).index(category_var)
+    print(f"C_cat_index = {C_cat_index}")
+    print(f"length of arrays in data = {[len(data[key]) for key in data.keys()]}")
+    #take first length and find vars with different length
+    first_length = len(data[list(data.keys())[0]])
+    for key in data.keys():
+        if len(data[key]) != first_length:
+            print(f"length of {key} = {len(data[key])}")
+
+    for category in category_list:
+        # build x_sig and x_bkg for the category, i.e. data[category_var]==category
+
+        mask = data[category_var] == category
+
+        print(f"mask length = {len(mask)}, mask = {mask}")
+
+        x = np.array(
+            [
+                ak.flatten(data[var][mask])
+                for var in training_vars
+            ]
+        ).T
+        num_evts = x.shape[0]
+
+        logging.info(f"category {category}: shape of x = {x.shape}")
+
+        # Create full x,y
+
+
+        y = np.zeros(num_evts)
+        data_arr.append((x, y))
+
+    return data_arr

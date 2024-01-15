@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import argparse
 import logging
+import uproot
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -21,6 +22,7 @@ from data_tools.load_data import (
     read_files_and_open_trees,
     get_data,
     get_categorized_data,
+    get_categorized_test_data,
     filter_trees,
 )
 from mva_tools.mva_response_tools import (
@@ -34,7 +36,7 @@ from my_logging import log_weights, log_histo_weights, log_num_events
 from mva_tools.mva_plot_tools import plot_response_hists, compute_roc, plot_and_save_roc
 
 
-methods_list = ["XGBoost"]
+methods_list = ["XGBoost", "adaboost", "keras_shallow"]
 categories = [1, 2, 3, 4, 5, 6]
 rng_seed = 10
 
@@ -46,6 +48,7 @@ if __name__ == "__main__":
     parser.add_argument("--train", action="store_true", help="train models")
     parser.add_argument("--results", action="store_true", help="produce results")
     parser.add_argument("--plots", action="store_true", help="make plots")
+    parser.add_argument("--data_test", action="store_true", help="test on data")
     # parser.add_argument("--validation", type=float, help="validation fraction")
     parser.add_argument(
         "--mass", type=str, help="single mass label of form mN1p0", required=True
@@ -68,8 +71,10 @@ if __name__ == "__main__":
         sig_labels,
         bkg_labels,
     ) = read_files_and_open_trees(ntuples_json, vars_json)
+    data_test_tree_path = "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_ParkingBPH1_Run2018A-UL2018_MiniAODv2-v1_tree.root"
+    data_test_tree = uproot.open(data_test_tree_path)["final_tree"]
     # LIST OF VARIABLES TO USE
-    good_vars = read_json_file(vars_json)["training_vars"]
+    good_vars = read_json_file(vars_json)["vars"]
     training_vars = read_json_file(vars_json)["training_vars"]
     scale_factor_vars = read_json_file(vars_json)["scale_factors"]
     if "C_pass_gen_matching" in good_vars:
@@ -150,10 +155,10 @@ if __name__ == "__main__":
 
                 # PLOT CORRELATION MATRIX
                 plot_corr_matrix(
-                    x_train_sig, x_test_sig, good_vars, category_dir, "sig"
+                    x_train_sig, x_test_sig, training_vars, category_dir, "sig"
                 )
                 plot_corr_matrix(
-                    x_train_bkg, x_test_bkg, good_vars, category_dir, "bkg"
+                    x_train_bkg, x_test_bkg, training_vars, category_dir, "bkg"
                 )
 
                 # TRAIN
@@ -186,6 +191,7 @@ if __name__ == "__main__":
                 sig_tree,
                 bkg_trees,
                 good_vars,
+                training_vars,
                 weight_name,
                 test_fraction,
                 rng_seed=rng_seed,
@@ -273,8 +279,8 @@ if __name__ == "__main__":
                     # FEATURE IMPORTANCE
                     if method == "XGBoost":
                         importances = model.feature_importances_
-                        var_names = good_vars
-                        importance_dict = {"variables": good_vars}
+                        var_names = training_vars
+                        importance_dict = {"variables": training_vars}
                         importance_dict[f"importance_{sig_label}"] = importances
                         importance_df = pd.DataFrame(importance_dict)
 
@@ -338,6 +344,7 @@ if __name__ == "__main__":
                     train_bkg_hist = np.array(df["train_bkg_hist"])
                     test_sig_hist = np.array(df["test_sig_hist"])
                     test_bkg_hist = np.array(df["test_bkg_hist"])
+                    significance = np.array(df["sig"])
 
                     plot_response_hists(
                         train_sig_hist,
@@ -350,9 +357,74 @@ if __name__ == "__main__":
                         category,
                         plots_dir,
                         log_scale=log_scale,
+                        significance=significance,
                     )
                 plot_and_save_roc(
                     roc_data, methods_list, sig_label, category, plots_dir
                 )
             print(f"Making plots for {sig_label} complete!")
         print(f"Making plots complete!")
+    if args.data_test:
+        print(f"Testing on data ...")
+        my_sig_trees = [data_test_tree]
+        my_sig_labels = ["mN1p0_ctau10"]
+        for tree, sig_label in zip(my_sig_trees, my_sig_labels):
+            print(f"Testing on data for {sig_label} ...")
+            results_dir = f"{out_dir}/{sig_label}"
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+
+            # GET DATA, CATEGORIZED
+            full_data = get_categorized_test_data(
+                tree,
+                training_vars,
+            )
+
+            # RESULTS
+            for category, data in zip(categories, full_data):
+                print(f"Testing on data for category {category} ...")
+                category_dir = f"{results_dir}/cat_{category}"
+
+                x, y = data
+
+                for method in methods_list:
+                    # PREDICT
+                    model = load_model(f"{category_dir}/{method}_model", method)
+                    y_pred = my_predict(model, x)
+                    weight = np.ones_like(y_pred)
+
+                    # RESPONSE HISTOGRAMS
+                    (
+                        train_sig_hist,
+                        train_bkg_hist,
+                        test_sig_hist,
+                        test_bkg_hist,
+                        bin_centers,
+                    ) = model_response_hists(
+                        y_pred,
+                        y_pred,
+                        y_pred,
+                        y_pred,
+                        weight,
+                        weight,
+                        weight,
+                        weight,
+                        normalize=True,
+                        n_bins=40,
+                    )
+                    out_dir = f"{category_dir}/test_response_hist"
+                    if not os.path.exists(out_dir):
+                        os.makedirs(out_dir)
+                    # dummy empty hists
+                    plot_response_hists(
+                        train_sig_hist,
+                        train_bkg_hist,
+                        test_sig_hist,
+                        test_bkg_hist,
+                        bin_centers,
+                        method,
+                        sig_label,
+                        category,
+                        out_dir,
+                        log_scale=False,
+                    )

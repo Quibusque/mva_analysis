@@ -24,7 +24,7 @@
     "XGBoost": {
         "max_depth": 3,
         "n_estimators": 150,
-        "early_stopping_rounds": 10
+        "early_stopping_rounds": 15
     },
     "adaboost": {
         "max_depth": 3,

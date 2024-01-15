@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 
 main_dir = "results_categories/myMVA"
-label_list = ["mN1p0_ctau10", "mN1p5_ctau10", "mN1p25_ctau10"]
+label_list = ["mN1p0_ctau10"]
 
 top_variables = []
-threshold = 0.05
+threshold = 0.1
 
 for label in label_list:
     input = f"{main_dir}/{label}"

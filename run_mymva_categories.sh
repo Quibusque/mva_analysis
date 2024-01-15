@@ -10,5 +10,5 @@ mass_list=("mN1p0")
 
 for mass in "${mass_list[@]}"
 do
-    python3 source/training_my_mva_categories.py --train --results --plots --mass $mass --out_dir $OUT_DIR
+    python3 source/training_my_mva_categories.py  --plots --data_test --mass $mass --out_dir $OUT_DIR
 done    
