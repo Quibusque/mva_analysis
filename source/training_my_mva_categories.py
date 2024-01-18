@@ -14,7 +14,6 @@ from cfg.hnl_mva_tools import read_json_file
 
 from mva_tools.mva_training_tools import (
     train_one_signal_all_methods,
-    train_one_signal_all_methods_categorized,
     load_model,
     methods_list,
 )
@@ -31,12 +30,13 @@ from mva_tools.mva_response_tools import (
     save_results_to_csv,
 )
 from mva_tools.mva_plot_tools import plot_corr_matrix
-from my_logging import log_weights, log_histo_weights, log_num_events
+from my_logging import log_histo_weights, log_weights_and_events
 
 from mva_tools.mva_plot_tools import plot_response_hists, compute_roc, plot_and_save_roc
 
 
-methods_list = ["XGBoost", "adaboost", "keras_shallow"]
+# methods_list = ["XGBoost", "adaboost", "keras_shallow"]
+methods_list = ["XGBoost"]
 categories = [1, 2, 3, 4, 5, 6]
 rng_seed = 10
 
@@ -49,7 +49,6 @@ if __name__ == "__main__":
     parser.add_argument("--results", action="store_true", help="produce results")
     parser.add_argument("--plots", action="store_true", help="make plots")
     parser.add_argument("--data_test", action="store_true", help="test on data")
-    # parser.add_argument("--validation", type=float, help="validation fraction")
     parser.add_argument(
         "--mass", type=str, help="single mass label of form mN1p0", required=True
     )
@@ -92,7 +91,7 @@ if __name__ == "__main__":
     # ┌───────────────────────────────┐
     # │ TEST AND VALIDATION FRACTIONS │
     # └───────────────────────────────┘
-    test_fraction = 0.2
+    test_fraction = 0.25
     validation_fraction = 0.1
 
     # ┌─────────────────────────────────────────┐
@@ -118,8 +117,6 @@ if __name__ == "__main__":
                 validation_fraction=validation_fraction,
                 scale_factor_vars=scale_factor_vars,
             )
-            print(f"Data is ready@@@@@@@@@@@!")
-            print("@@@@@@@@@@@@@@@@@@ ")
             # TRAINING
             for category, data in zip(categories, full_data):
                 category_dir = f"{results_dir}/cat_{category}"
@@ -140,8 +137,16 @@ if __name__ == "__main__":
                     w_val,
                     w_test,
                 ) = data
-                log_weights(y_train, y_test, w_train, w_test, sig_label, y_val, w_val)
-                log_num_events(y_train, y_test, sig_label, y_val)
+                log_weights_and_events(
+                    y_train,
+                    y_test,
+                    w_train,
+                    w_test,
+                    sig_label,
+                    category_dir,
+                    y_val=y_val,
+                    w_val=w_val,
+                )
                 # SIGNAL AND BACKGROUND TRAINING AND TEST SAMPLES
                 x_train_sig = x_train[y_train == 1]
                 x_train_bkg = x_train[y_train == 0]
@@ -168,7 +173,6 @@ if __name__ == "__main__":
                     w_train,
                     methods_list,
                     category_dir,
-                    new_vars=True,
                     x_val=x_val,
                     y_val=y_val,
                     w_val=w_val,
@@ -314,6 +318,7 @@ if __name__ == "__main__":
                     os.makedirs(plots_dir)
                 # ROC
                 roc_data = []
+                wp = None
                 for method in methods_list:
                     df = pd.read_csv(f"{category_dir}/{method}_results.csv")
 
@@ -346,7 +351,9 @@ if __name__ == "__main__":
                     test_bkg_hist = np.array(df["test_bkg_hist"])
                     significance = np.array(df["sig"])
 
-                    plot_response_hists(
+
+
+                    method_wp = plot_response_hists(
                         train_sig_hist,
                         train_bkg_hist,
                         test_sig_hist,
@@ -359,8 +366,11 @@ if __name__ == "__main__":
                         log_scale=log_scale,
                         significance=significance,
                     )
+                    print(f"Working point for {method} is {method_wp}")
+                    if method == "XGBoost":
+                        wp = method_wp
                 plot_and_save_roc(
-                    roc_data, methods_list, sig_label, category, plots_dir
+                    roc_data, methods_list, sig_label, category, plots_dir, working_point=wp
                 )
             print(f"Making plots for {sig_label} complete!")
         print(f"Making plots complete!")

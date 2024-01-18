@@ -247,8 +247,6 @@ def categorize_data(
         ),
     )
 
-    # print data[category_var][:10] to check that it worked
-    print(data[category_var][:10])
 
     return data
 
@@ -352,9 +350,6 @@ def get_categorized_data(
 
         mask_sig = data_sig[category_var] == category
         mask_bkg = data_bkg[category_var] == category
-
-        print(f"mask_sig length = {len(mask_sig)}, mask_sig = {mask_sig}")
-        print(f"mask_bkg length = {len(mask_bkg)}, mask_bkg = {mask_bkg}")
 
         x_sig = np.array(
             [

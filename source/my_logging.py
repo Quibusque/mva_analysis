@@ -6,51 +6,31 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
-def log_weights(y_train, y_test, w_train, w_test, sig_label, y_val=None, w_val=None):
-    logging.info(
-        f"Total weights for {sig_label} signal train: {np.sum(w_train[y_train == 1])}"
-    )
-    logging.info(
-        f"Total weights for {sig_label} background train: {np.sum(w_train[y_train == 0])}"
-    )
-    logging.info(
-        f"Total weights for {sig_label} signal test: {np.sum(w_test[y_test == 1])}"
-    )
-    logging.info(
-        f"Total weights for {sig_label} background test: {np.sum(w_test[y_test == 0])}"
-    )
+
+def log_weights_and_events(y_train, y_test, w_train, w_test, sig_label,out_dir, y_val=None, w_val=None):
+    log_messages = []
+    log_messages.append(f"Total weights for {sig_label} signal train: {np.sum(w_train[y_train == 1])}")
+    log_messages.append(f"Total weights for {sig_label} background train: {np.sum(w_train[y_train == 0])}")
+    log_messages.append(f"Total weights for {sig_label} signal test: {np.sum(w_test[y_test == 1])}")
+    log_messages.append(f"Total weights for {sig_label} background test: {np.sum(w_test[y_test == 0])}")
+    log_messages.append(f"Total events for {sig_label} signal train: {len(y_train[y_train == 1])}")
+    log_messages.append(f"Total events for {sig_label} background train: {len(y_train[y_train == 0])}")
+    log_messages.append(f"Total events for {sig_label} signal test: {len(y_test[y_test == 1])}")
+    log_messages.append(f"Total events for {sig_label} background test: {len(y_test[y_test == 0])}")
+
     if (y_val is None) != (w_val is None):
         raise ValueError("Either all or none of y_val, w_val must be given")
     if y_val is not None and w_val is not None:
-        logging.info(
-            f"Total weights for {sig_label} signal validation: {np.sum(w_val[y_val == 1])}"
-        )
-        logging.info(
-            f"Total weights for {sig_label} background validation: {np.sum(w_val[y_val == 0])}"
-        )
+        log_messages.append(f"Total weights for {sig_label} signal validation: {np.sum(w_val[y_val == 1])}")
+        log_messages.append(f"Total weights for {sig_label} background validation: {np.sum(w_val[y_val == 0])}")
+        log_messages.append(f"Total events for {sig_label} signal validation: {len(y_val[y_val == 1])}")
+        log_messages.append(f"Total events for {sig_label} background validation: {len(y_val[y_val == 0])}")
 
-
-def log_num_events(y_train, y_test, sig_label, y_val=None):
-    logging.info(
-        f"Total events for {sig_label} signal train: {len(y_train[y_train == 1])}"
-    )
-    logging.info(
-        f"Total events for {sig_label} background train: {len(y_train[y_train == 0])}"
-    )
-    logging.info(
-        f"Total events for {sig_label} signal test: {len(y_test[y_test == 1])}"
-    )
-    logging.info(
-        f"Total events for {sig_label} background test: {len(y_test[y_test == 0])}"
-    )
-    if y_val is not None:
-        logging.info(
-            f"Total events for {sig_label} signal validation: {len(y_val[y_val == 1])}"
-        )
-        logging.info(
-            f"Total events for {sig_label} background validation: {len(y_val[y_val == 0])}"
-        )
-
+    # Log messages and write to file
+    with open(f"{out_dir}/weights_and_events.txt", "w") as f:
+        for message in log_messages:
+            logging.info(message)
+            f.write(message + "\n")
 
 def log_histo_weights(
     train_sig_hist,

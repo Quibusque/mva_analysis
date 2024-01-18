@@ -10,6 +10,8 @@ import os
 from .mva_response_tools import (
     tpr,
     fpr,
+    calculate_classification_rates,
+    calculate_significance,
 )
 import json
 
@@ -102,12 +104,14 @@ def plot_response_hists(
     # fig set title
     fig.suptitle(f"{sig_label} {method} Response, category {category}")
 
+    wp = None
     if significance is not None:
         # find max significance
         max_sig = np.nanmax(significance)
         # find the response value at which max_sig occurs
         max_sig_response = bin_centers[np.nanargmax(significance)]
-        # draw a vertical line at that response value, make it a ---- line
+        max_sig_index = np.nanargmax(significance)
+        # draw a vertical line at that response value
         ax1.axvline(
             x=max_sig_response,
             color="tab:green",
@@ -122,10 +126,15 @@ def plot_response_hists(
             label=f"max sig = {max_sig:.2f} @ {max_sig_response:.2f}",
             color="tab:green",
         )
-        ax2.set_ylabel("significance", color="tab:green")
-        ax2.tick_params(axis="y", labelcolor="tab:green")
-        ax2.set_ylim(0, 1.1 * np.max(significance))
-        ax2.grid(False)
+        #sig_eff is integral of test_sig_hist from max_sig_index to end
+        #over integral of test_sig_hist
+        sig_eff = np.sum(test_sig_hist[max_sig_index:]) / np.sum(test_sig_hist)
+        #bkg_eff is integral of test_bkg_hist from max_sig_index to end
+        #over integral of test_bkg_hist
+        bkg_eff = np.sum(test_bkg_hist[max_sig_index:]) / np.sum(test_bkg_hist)
+        bkg_rej = 1 - bkg_eff
+        wp = (sig_eff, bkg_rej)
+
 
     # make a single legend for both axes
     handles, labels = ax1.get_legend_handles_labels()
@@ -135,19 +144,11 @@ def plot_response_hists(
         labels += labels2
     ax1.legend(handles, labels, loc="best")
 
-    # plt.xlabel("Response")
-    # plt.ylabel("Normalized Counts")
-    # plt.title(f"{sig_label} {method} Response, category {category}")
 
-    # plt.legend()
-
-    # # save plot
-    # plt.savefig(f"{out_dir}/{method}_response.png")
-    # plt.close()
-
-    # save plot
     plt.savefig(f"{out_dir}/{method}_response.png", bbox_inches="tight")
     plt.close()
+
+    return wp
 
 
 def compute_roc(tp_arr, fp_arr, fn_arr, tn_arr):
@@ -191,6 +192,7 @@ def plot_and_save_roc(
     category,
     out_dir: str,
     xlim: tuple = (0.5, 1.02),
+    working_point = None,
     cut_based_json: str = "source/cfg/cut_based.json",
 ):
     for method, (x_values, y_values) in zip(methods, roc_data):
@@ -201,13 +203,15 @@ def plot_and_save_roc(
             label=f"{method} \nauc = {auc:.3f}",
             linewidth=2,
         )
+        if method == "XGBoost" and working_point is not None:
+            plt.scatter(
+                working_point[0],
+                working_point[1],
+                label="working point",
+                marker="o",
+                s=30,
+            )
 
-        # #make a scatter plot, but with small dots
-        # plt.scatter(
-        #     x_values,
-        #     y_values,
-        #     s=10,
-        # )
 
     with open(cut_based_json, "r") as file:
         cut_based_dict = json.load(file)
@@ -221,10 +225,10 @@ def plot_and_save_roc(
             marker="x",
             s=100,
         )
-        # also draw a thin grey horizontal line with y=cut_based_bkg_rej
-        plt.axhline(y=cut_based_bkg_rej, color="black", linewidth=2, alpha=0.5)
-        # also draw a thin grey vertical line with x=cut_based_sig_eff
-        plt.axvline(x=cut_based_sig_eff, color="black", linewidth=2, alpha=0.5)
+        # # also draw a thin grey horizontal line with y=cut_based_bkg_rej
+        # plt.axhline(y=cut_based_bkg_rej, color="black", linewidth=2, alpha=0.5)
+        # # also draw a thin grey vertical line with x=cut_based_sig_eff
+        # plt.axvline(x=cut_based_sig_eff, color="black", linewidth=2, alpha=0.5)
 
     plt.xlabel("Signal Efficiency")
     plt.ylabel("Background Rejection")

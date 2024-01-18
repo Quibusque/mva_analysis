@@ -1,8 +1,12 @@
 from xgboost import XGBClassifier
+from xgboost.callback import EarlyStopping
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import joblib
 import numpy as np
+from sklearn.model_selection import GridSearchCV
+import pandas as pd
+
 
 import os
 
@@ -29,22 +33,31 @@ def build_and_train_xgboost(
     n_estimators,
     early_stopping_rounds,
     output_path,
+    eval_metric,
+    objective,
     x_val=None,
     y_val=None,
     w_val=None,
 ):
     must_validate = all([x_val is not None, y_val is not None, w_val is not None])
 
-    # Fit xgboost model
-    bst = XGBClassifier(
-        max_depth=max_depth,
-        n_estimators=n_estimators,
-        eval_metric="error",
-        objective="binary:logistic",
-        early_stopping_rounds=early_stopping_rounds,
-    )
-
     if must_validate:
+        es = EarlyStopping(
+            rounds=early_stopping_rounds,
+            min_delta=5e-3,
+            save_best=True,
+            maximize=False,
+            data_name="validation_0",
+            metric_name=eval_metric,
+        )
+        bst = XGBClassifier(
+            max_depth=max_depth,
+            n_estimators=n_estimators,
+            eval_metric=eval_metric,
+            objective=objective,
+            callbacks=[es],
+        )
+
         bst.fit(
             x_train,
             y_train,
@@ -54,13 +67,86 @@ def build_and_train_xgboost(
             verbose=True,
         )
     else:
+        bst = XGBClassifier(
+            max_depth=max_depth,
+            n_estimators=n_estimators,
+            eval_metric=eval_metric,
+            objective=objective,
+        )
+
         bst.fit(x_train, y_train, sample_weight=w_train)
+
+    # THIS WAS FOR DEBUGGING
+    # print("bst: ", bst)
+    # print("bst.best_iteration: ", bst.best_iteration)
+
+    # # print the bst predict on signal validation dataset
+    # # also print the first variable of x_val for the
+    # # corresponding event
+    # first_elements = x_val[:, 0]
+    # # make it first 10 elements
+    # first_elements = first_elements[:10]
+    # predictions = bst.predict(x_val, output_margin=True)
+    # predictions = predictions[:10]
+    # for i in range(len(first_elements)):
+    #     print(
+    #         f"Event {i} has first variable {first_elements[i]} and prediction {predictions[i]}"
+    #     )
+
+    # print("SECOND TRAIN WITH DIFF STUFF")
+    # bst_2 = XGBClassifier(
+    #     max_depth=max_depth,
+    #     n_estimators=n_estimators,
+    #     eval_metric=eval_metric,
+    #     objective=objective,
+    #     early_stopping_rounds=early_stopping_rounds,
+    # )
+    # bst_2.fit(
+    #     x_train,
+    #     y_train,
+    #     sample_weight=w_train,
+    #     eval_set=[(x_val, y_val)],
+    #     sample_weight_eval_set=[w_val],
+    #     verbose=True,
+    # )
+    # predictions = bst_2.predict(x_val, output_margin=True)
+    # predictions = predictions[:10]
+    # for i in range(len(first_elements)):
+    #     print(
+    #         f"Event {i} has first variable {first_elements[i]} and prediction {predictions[i]}"
+    #     )
 
     if output_path is not None:
         if not output_path.endswith(".txt"):
             output_path += ".txt"
         bst.save_model(output_path)
         print(f"Model saved to {output_path}")
+
+    # param_grid = {
+    #     "eta": [0.01, 0.05, 0.1, 0.2, 0.3],
+    #     "max_depth": [3, 4, 5, 6],
+
+    # }
+    # scoring = {'AUC': 'roc_auc', 'F1': 'f1'}
+
+    # optimal_params = GridSearchCV(
+    #     estimator=bst,
+    #     param_grid=param_grid,
+    #     scoring=scoring,
+    #     refit='F1',
+    #     verbose=0,
+    #     n_jobs=4,
+    #     cv=3,
+    # )
+
+    # optimal_params.fit(x_train, y_train, eval_set=[(x_val, y_val)], verbose=False)
+    # # Print the best parameters
+    # print("Best parameters: ", optimal_params.best_params_)
+
+    # # Print the AUC and F1 for each parameter combination
+    # results = pd.DataFrame(optimal_params.cv_results_)
+    # print("Results: ##########")
+    # print(results[['mean_test_AUC', 'mean_test_F1', 'params']])
 
     return bst
 
@@ -220,7 +306,7 @@ def train_compiled_dense_keras_model(
             sample_weight=w_train,
             epochs=epochs,
             batch_size=batch_size,
-            verbose=0,
+            verbose=1,
             validation_data=(x_val, y_val),
             callbacks=[
                 tf.keras.callbacks.EarlyStopping(
@@ -235,7 +321,7 @@ def train_compiled_dense_keras_model(
             sample_weight=w_train,
             epochs=epochs,
             batch_size=batch_size,
-            verbose=0,
+            verbose=1,
         )
 
     if output_path is not None:
@@ -276,7 +362,8 @@ def train_one_signal_one_method(
     w_train,
     method,
     out_dir,
-    new_vars: bool = False,
+    xgboost_eval_metric,
+    xgboost_objective,
     x_val=None,
     y_val=None,
     w_val=None,
@@ -317,6 +404,8 @@ def train_one_signal_one_method(
                 n_estimators,
                 early_stopping_rounds,
                 output_path,
+                xgboost_eval_metric,
+                xgboost_objective,
                 x_val,
                 y_val,
                 w_val,
@@ -460,7 +549,8 @@ def train_one_signal_all_methods(
     w_train,
     methods_list,
     out_dir,
-    new_vars: bool,
+    xgboost_eval_metric="rmsle",
+    xgboost_objective="binary:logistic",
     hyperpars_file: str = "source/cfg/hyperparameters.json",
     x_val=None,
     y_val=None,
@@ -476,34 +566,12 @@ def train_one_signal_all_methods(
             w_train,
             method,
             out_dir,
+            xgboost_eval_metric,
+            xgboost_objective,
             hyperpars_file=hyperpars_file,
             x_val=x_val,
             y_val=y_val,
             w_val=w_val,
-        )
-
-
-def train_one_signal_all_methods_categorized(
-    x_train,
-    y_train,
-    w_train,
-    methods_list,
-    out_dir,
-    category_index: str,
-    hyperpars_file: str = "source/cfg/hyperparameters.json",
-):
-    out_dir = f"{out_dir}/cat_{category_index}"
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-
-    for method in methods_list:
-        train_one_signal_one_method(
-            x_train,
-            y_train,
-            w_train,
-            method,
-            out_dir,
-            hyperpars_file=hyperpars_file,
         )
 
 

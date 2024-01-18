@@ -1,0 +1,12 @@
+Total weights for mN1p5_ctau10 signal train: 1996.6641566753124
+Total weights for mN1p5_ctau10 background train: 2140.2630306566543
+Total weights for mN1p5_ctau10 signal test: 763.0110119758775
+Total weights for mN1p5_ctau10 background test: 631.6035500181175
+Total events for mN1p5_ctau10 signal train: 1997  
+Total events for mN1p5_ctau10 background train: 1097
+Total events for mN1p5_ctau10 signal test: 771    
+Total events for mN1p5_ctau10 background test: 419
+Total weights for mN1p5_ctau10 signal validation: 315.32483134881005
+Total weights for mN1p5_ctau10 background validation: 303.1334193252274
+Total events for mN1p5_ctau10 signal validation: 307
+Total events for mN1p5_ctau10 background validation: 169
