@@ -1,116 +1,129 @@
-import numpy as np
-import os
-import uproot
-import awkward as ak
-import ROOT
+from add_score_tools.add_score_tools import (
+    append_multiple_scores_overwrite,
+    get_multiple_bdt_outputs,
+    write_multiple_scores_root,
+)
 from cfg.hnl_mva_tools import read_json_file
+from mva_tools.mva_training_tools import load_model
+import uproot
+import os
+import re
+import awkward as ak
+import numpy as np
 
-from data_tools.load_data import (
-    get_categorized_data,
-    categorize_data,
-    read_files_and_open_trees
-)
-from mva_tools.mva_training_tools import (
-    train_one_signal_all_methods,
-    load_model,
-)
+input_files_list = [
+    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p0_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
+    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p25_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
+    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p5_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
+    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p8_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root"
+    # add comma
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_ParkingBPH1_Run2018A-UL2018_MiniAODv2-v1_tree.root",
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-20To30_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
+    # "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
+]
 
-training_vars = ["C_Ds_pt"]
 category_list = [1, 2, 3, 4, 5, 6]
 category_var = "C_category"
-tree_name = "final_tree"
 
-def fix_pred_shape(y_pred, mask):
-    """
-    This function takes the y_pred 1D array and reshapes it to match the true
-    entries of the mask array. False entries are filled with np.nan.
-    Args:
-        y_pred: the array of predictions
-        mask: the array of mask values
-    Returns:
-        y_pred_shaped: the reshaped array of predictions
-    Example:
-        y_pred = [1,2,3]
-        mask = [[False, True], [True, False, True]]
-        y_pred_reshaped = [[nan, 1],[2, nan, 3]]
-    """
-    assert len(y_pred) == ak.sum(mask)
+trained_models_dirs = [
+    "results_categories/myMVA/mN1p0_ctau10",
+    "results_categories/myMVA/mN1p25_ctau10",
+    "results_categories/myMVA/mN1p5_ctau10",
+    "results_categories/myMVA/mN1p8_ctau10",
+]
 
-    y_pred_flat = np.full(ak.sum(ak.num(mask)), np.nan)
-    y_pred_flat[ak.flatten(mask)] = y_pred
+ntuples_json = "source/cfg/ntuples.json"
+vars_json = "source/cfg/vars_new.json"
+my_method = "XGBoost"
 
-    y_pred_shaped = ak.unflatten(y_pred_flat, ak.num(mask))
-    return y_pred_shaped
+ntuples = read_json_file(ntuples_json)
+treename = ntuples["treename"]
 
-def get_bdt_output(data_dict, training_vars, category_list, xgboost_models):
-    assert len(category_list) == len(xgboost_models)
 
-    # categorize the data, this adds the C_category column
-    categorize_data(
-        data_dict,
-        category_list,
-        category_var=category_var,
-        default_category=0,
+good_vars = read_json_file(vars_json)["vars"]
+training_vars = read_json_file(vars_json)["training_vars"]
+
+
+# ┌─────────────────────────────┐
+# │ LOAD ALL THE XGBOOST MODELS │
+# └─────────────────────────────┘
+mass_hypotheses = []
+xgboost_models_dict = {}
+for trained_model_dir in trained_models_dirs:
+    # check that dir exists
+    assert os.path.isdir(trained_model_dir)
+    mass_hyp = re.findall(r"(mN1p\d+_ctau\d+)", trained_model_dir)[0]
+    mass_hypotheses.append(mass_hyp)
+    xgboost_models_dict[mass_hyp] = []
+    for category in category_list:
+        category_dir = f"{trained_model_dir}/cat_{category}"
+        print(f"Loading {my_method} model from {category_dir}")
+        model = load_model(f"{category_dir}/{my_method}_model", my_method)
+        xgboost_models_dict[mass_hyp].append(model)
+print(f"Loaded {my_method} models")
+
+for input_file in input_files_list:
+    print(f"Processing {input_file}")
+    # open the tree with uproot
+    my_tree = uproot.open(input_file)[treename]
+
+    # get the data from the tree
+    data_dict = my_tree.arrays(good_vars, library="ak", how=dict)
+    print(f"data_dict.keys() before: {list(data_dict.keys())}")
+    # get the bdt output
+    bdt_outputs = get_multiple_bdt_outputs(
+        data_dict, training_vars, category_list, xgboost_models_dict
+    )
+    print(f"bdt_outputs: {bdt_outputs}")
+    print(f"mass_hypotheses: {mass_hypotheses}")
+    assert len(bdt_outputs) == len(mass_hypotheses)
+
+    # for bdt_output, mass_hyp in zip(bdt_outputs, mass_hypotheses):
+    #     #flatten it
+    #     bdt_output = ak.flatten(bdt_output)
+    #     #make histogram
+    #     plt.hist(bdt_output, bins=100)
+    #     plt.xlabel(f"BDT output for {mass_hyp}")
+    #     plt.ylabel("Events")
+    #     out_dir = "test_plots"
+    #     if not os.path.isdir(out_dir):
+    #         os.makedirs(out_dir)
+    #     plt.savefig(f"{out_dir}/{mass_hyp}.png")
+
+    # append the bdt output to the tree
+    score_name_list = [
+        "C_" + my_method.lower() + "_score_" + mass_hyp for mass_hyp in mass_hypotheses
+    ]
+    output_file = input_file.replace(".root", "_with_scores.root")
+    write_multiple_scores_root(
+        input_file, output_file, treename, bdt_outputs, score_name_list
     )
 
-    # make sure the default category is empty
-    assert np.sum(data_dict[category_var] == 0) == 0
-    # input_dict[var] is an awkward array
-    # make out an awkward array that copies
-    # the shape of input_dict[var]
-    bdt_output = ak.ones_like(data_dict[training_vars[0]]) * np.nan
+    # open the output file with uproot
+    my_new_tree = uproot.open(output_file)[treename]
+    # get the data from the tree
+    bdt_outputs_new_dict = my_new_tree.arrays(score_name_list, library="ak", how=dict)
+    bdt_outputs_new = [bdt_outputs_new_dict[score_name] for score_name in score_name_list]
 
-    for category,model in zip(category_list,xgboost_models):
-        mask = data_dict[category_var] == category
-        # x_cat[i] is ith event
-        # x_cat[i][j] is the jth variable for the ith event
-        x_cat = np.array([ak.flatten(data_dict[var][mask]) for var in training_vars]).T
-        y_score_cat = model.predict(x_cat, output_margin=True)
-        y_score_cat_shaped = fix_pred_shape(y_score_cat, mask)
+    # check that the bdt outputs are the same
+    wrong_counter = 0
+    for main_index, (bdt_output, bdt_output_new) in enumerate(zip(bdt_outputs, bdt_outputs_new)):
+        for el1, el2 in zip(bdt_output, bdt_output_new):
+            print(f"{el1} == {el2} ? {el1 == el2}")
+            if ak.any(el1 != el2):
+                wrong_counter += 1
+            if wrong_counter > 10:
+                break
+    break
 
-        #ak.where(condition, x, y) does the same as
-        # output[i] = x[i] if condition[i] else y[i]     so this fills the 
-        #bdt_output array with the predictions for the current category and
-        #leaves the rest as they are
-        bdt_output = ak.where(mask, y_score_cat_shaped, bdt_output)
-
-    #check that there are no np.nan values left in the bdt_output array
-    assert np.sum(np.isnan(bdt_output)) == 0
-
-    #check again that bdt_output has the same shape as the input data
-    assert ak.all(ak.num(bdt_output) == ak.num(data_dict[training_vars[0]]))
-
-    return bdt_output
-
-
-def rewrite_root_file(input_file, tree_name, bdt_output):  # array_of_pNN2):
-    print("Save new branch in original ROOT file")
-    myfile = ROOT.TFile(input_file, "update")
-    mytree = myfile.Get(tree_name)
-    bdt_curr_score = ak.Array([0.5])
-    new_branch = mytree.Branch("C_bdtscore", bdt_curr_score, "C_bdtscore[nCand]/D")
-    n_events = mytree.GetEntries()
-    assert len(bdt_output) == n_events
-    for i in range(n_events):
-        bdt_curr_score = bdt_output[i]
-        mytree.GetEntry(i)
-        new_branch.Fill()
-
-
-def write_output_to_root_signal(tree, file, mass):
-    # print ("[signal] Reading trees {} in file {}".format(tree, file))
-    print(f"[signal] Reading trees {tree} in file {file}")
-    data = uproot.open(file)[tree]
-
-    out = data.arrays(training_vars, library="ak", how="dict")
-    out["type"] = 1.0
-
-    mass = float(mass)
-
-    bdt_score = get_pNN_output_signal(
-        out, mass, cat2_model="both_cat-2/pnn-preproc-drop-l2_fullrun2_2"
-    )
-    # pNN_out_array2 = get_pNN_output_signal(out, mass, cat2_model='both_cat-2/pnn-preproc-drop-l2_v4_second')
-
-    # update root file with output pNN
-    rewrite_root_signal(file, tree, bdt_score)  # , pNN_out_array2)
+# # check that dir exists
+# assert os.path.isdir(trained_model_dir)
+# xgboost_models = []
+# for category in category_list:
+#     category_dir = f"{trained_model_dir}/cat_{category}"
+#     model = load_model(f"{category_dir}/{my_method}_model", my_method)
+#     xgboost_models.append(model)
