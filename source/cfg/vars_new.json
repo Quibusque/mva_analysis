@@ -24,7 +24,6 @@
         "C_pi_nValidPixelHits",
         "C_mu1mu2_dr",
         "C_mu2pi_dr",
-        "event",
         "C_pass_gen_matching",
         "C_mu_Hnl_charge",
         "C_mu_Ds_charge"
