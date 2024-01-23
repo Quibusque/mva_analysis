@@ -1,0 +1,12 @@
+Total weights for mN1p8_ctau10 signal train: 85.29415734204295
+Total weights for mN1p8_ctau10 background train: 79.65702729528617
+Total weights for mN1p8_ctau10 signal test: 26.026865986654943
+Total weights for mN1p8_ctau10 background test: 30.476487631738912
+Total events for mN1p8_ctau10 signal train: 84
+Total events for mN1p8_ctau10 background train: 10356
+Total events for mN1p8_ctau10 signal test: 27
+Total events for mN1p8_ctau10 background test: 3989
+Total weights for mN1p8_ctau10 signal validation: 11.678976671302102
+Total weights for mN1p8_ctau10 background validation: 12.866485072974925
+Total events for mN1p8_ctau10 signal validation: 12
+Total events for mN1p8_ctau10 background validation: 1595

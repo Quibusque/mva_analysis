@@ -138,8 +138,6 @@ def get_multiple_bdt_outputs(data_dict, training_vars, category_list, xgboost_mo
             # bdt_output array with the predictions for the current category and
             # leaves the rest as they are
             bdt_output = ak.where(mask, y_score_cat_shaped, bdt_output)
-            print("get_multiple_bdt_outputs")
-            print(f"bdt_output in category {category} and mass_hyp {mass_hyp}: {bdt_output}")
 
         # check that there are no np.nan values left in the bdt_output array
         assert np.sum(np.isnan(bdt_output)) == 0
@@ -345,20 +343,24 @@ def write_multiple_scores_root(input_file_name, output_file_name, treename, bdt_
     nCand_presel = array("i", [0])
     output_tree.Branch("nCand_presel", nCand_presel, "nCand_presel/I")
     print("in append_multiple_scores_overwrite")
+    score_branches = []
+    bdt_score_branches = []
     for bdt_score, score_name in zip(bdt_score_list, score_name_list):
         print(f"bdt_score hist: {bdt_score}")
         print_ascii_histogram(bdt_score)
-        bdt_score_branch = array("d", [0] * max_subevts)
-        output_tree.Branch(score_name, bdt_score_branch, f"{score_name}[nCand_presel]/D")
+        bdt_score_branches.append(array("d", [0] * max_subevts))
+        score_branches.append(output_tree.Branch(score_name, bdt_score_branches[-1], f"{score_name}[nCand_presel]/D"))
+        # output_tree.Branch(score_name, bdt_score_branch, f"{score_name}[nCand_presel]/D")
         # output_tree.Branch("C_Bdt_score", bdt_score_branch, "C_Bdt_score[nCand_presel]/D")
 
-        # Now loop over the tree and fill the new branch
-        for i in range(tree.GetEntries()):
-            tree.GetEntry(i)  # Load the i-th entry
-            nCand_presel[0] = len(bdt_score[i])  # Set the number of candidates
-            for j in range(nCand_presel[0]):
+    # Now loop over the tree and fill the new branch
+    for i in range(tree.GetEntries()):
+        tree.GetEntry(i)
+        nCand_presel[0] = len(bdt_score_list[0][i])
+        for j in range(nCand_presel[0]):
+            for bdt_score_branch, bdt_score in zip(bdt_score_branches, bdt_score_list):
                 bdt_score_branch[j] = bdt_score[i][j]
-            output_tree.Fill()
+        output_tree.Fill()
 
     #close the input file
     input_file.Close()

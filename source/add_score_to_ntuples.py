@@ -69,19 +69,29 @@ print(f"Loaded {my_method} models")
 for input_file in input_files_list:
     print(f"Processing {input_file}")
     # open the tree with uproot
-    my_tree = uproot.open(input_file)[treename]
+    with uproot.open(input_file) as f:
+        my_tree = f[treename]
+        data_dict = my_tree.arrays(good_vars, library="ak", how=dict)
+        # get the bdt output
+        bdt_outputs = get_multiple_bdt_outputs(
+            data_dict, training_vars, category_list, xgboost_models_dict
+        )
+        assert len(bdt_outputs) == len(mass_hypotheses)
 
-    # get the data from the tree
-    data_dict = my_tree.arrays(good_vars, library="ak", how=dict)
-    print(f"data_dict.keys() before: {list(data_dict.keys())}")
-    # get the bdt output
-    bdt_outputs = get_multiple_bdt_outputs(
-        data_dict, training_vars, category_list, xgboost_models_dict
-    )
-    print(f"bdt_outputs: {bdt_outputs}")
-    print(f"mass_hypotheses: {mass_hypotheses}")
-    assert len(bdt_outputs) == len(mass_hypotheses)
+        print(f"n_entries from bdt_outputs: {len(bdt_outputs[0])}")
+        print(f"n_entries from data_dict: {len(data_dict['C_Ds_pt'])}")
+        print(f"n_entries from my_tree: {len(my_tree['C_Ds_pt'])}")
+    # my_tree = uproot.open(input_file)[treename]
 
+    # # get the data from the tree
+    # data_dict = my_tree.arrays(good_vars, library="ak", how=dict)
+    # # get the bdt output
+    # bdt_outputs = get_multiple_bdt_outputs(
+    #     data_dict, training_vars, category_list, xgboost_models_dict
+    # )
+    # assert len(bdt_outputs) == len(mass_hypotheses)
+
+    break
     # for bdt_output, mass_hyp in zip(bdt_outputs, mass_hypotheses):
     #     #flatten it
     #     bdt_output = ak.flatten(bdt_output)
@@ -110,14 +120,19 @@ for input_file in input_files_list:
     bdt_outputs_new = [bdt_outputs_new_dict[score_name] for score_name in score_name_list]
 
     # check that the bdt outputs are the same
-    wrong_counter = 0
     for main_index, (bdt_output, bdt_output_new) in enumerate(zip(bdt_outputs, bdt_outputs_new)):
-        for el1, el2 in zip(bdt_output, bdt_output_new):
-            print(f"{el1} == {el2} ? {el1 == el2}")
+        print(f"main_index: {main_index}")
+        if ak.all(bdt_output == bdt_output_new):
+            print("All good")
+            continue
+        #print index where they are different, keep in mind its awkward
+        for index, (el1,el2) in enumerate(zip(bdt_output, bdt_output_new)):
             if ak.any(el1 != el2):
-                wrong_counter += 1
-            if wrong_counter > 10:
+                print(f"index: {index}")
+                print(f"el1: {el1}")
+                print(f"el2: {el2}")
                 break
+
     break
 
 # # check that dir exists

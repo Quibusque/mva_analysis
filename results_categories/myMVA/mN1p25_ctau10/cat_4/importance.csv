@@ -1,0 +1,17 @@
+variables,importance_mN1p25_ctau10
+C_Hnl_vertex_cos2D,0.48382127
+C_pi_BS_ip_xy,0.07130765
+C_Hnl_vertex_2DSig_BS,0.06028923
+C_mu_Ds_BS_ips_xy,0.05120229
+C_Ds_vertex_cos2D,0.047440752
+C_mu_Hnl_pt,0.04576462
+C_mu1mu2_dr,0.042321805
+C_mu_Hnl_BS_ips_xy,0.033300363
+C_mu_Ds_pt,0.03292011
+C_Ds_pt,0.02954566
+C_mu2pi_dr,0.023462906
+C_pi_BS_ips_xy,0.021540646
+C_Hnl_vertex_prob,0.018091355
+C_Hnl_vertex_cos3D,0.013767364
+C_pi_pt,0.01314634
+C_Ds_vertex_prob,0.012077584
