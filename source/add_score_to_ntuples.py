@@ -7,19 +7,20 @@ import re
 import awkward as ak
 import numpy as np
 
-input_files_list = [
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p0_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p25_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p5_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_DsToNMu_NToMuPi_SoftQCDnonD_noQuarkFilter_mN1p8_ctau10p0mm_TuneCP5_13TeV-pythia8-evtgen_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_ParkingBPH1_Run2018A-UL2018_MiniAODv2-v1_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-20To30_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
-    "/home/quibus/hnl_ntuples_for_mva/tree_HnlToMuPi_prompt_QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8_tree.root",
-]
+main_input_dir = "/home/quibus/hnl_ntuples_for_mva"
+
+# input files list must find all files in the main_input_dir and subdirectories
+# that end with .root
+input_files_list = []
+for root, dirs, files in os.walk(main_input_dir):
+    for file in files:
+        if file.endswith(".root"):
+            input_files_list.append(os.path.join(root, file))
+
+print("I found the following input files:")
+for input_file in input_files_list:
+    print(input_file)
+
 
 category_list = [1, 2, 3, 4, 5, 6]
 category_var = "C_category"
@@ -62,6 +63,7 @@ for trained_model_dir in trained_models_dirs:
 print(f"Loaded {my_method} models")
 
 for input_file in input_files_list:
+    break
     assert os.path.isfile(input_file)
     # event number is used later to cross check, make sure it is in the list
     # of variables to load. C_pass_gen_matching is not available in data
@@ -70,7 +72,6 @@ for input_file in input_files_list:
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
 
-    
     data_dict = uproot.open(input_file)[treename].arrays(
         library="ak", how=dict, expressions=good_vars
     )
@@ -98,7 +99,9 @@ for input_file in input_files_list:
         os.path.dirname(input_file), "scores_" + os.path.basename(input_file)
     )
     # create list of score_names
-    score_names = [f"C_{(my_method).lower()}_{mass_hyp}" for mass_hyp in mass_hypotheses]
+    score_names = [
+        f"C_{(my_method).lower()}_{mass_hyp}" for mass_hyp in mass_hypotheses
+    ]
 
     # write the scores to the output file
     write_score_root(
