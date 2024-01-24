@@ -6,8 +6,18 @@ import os
 import re
 import awkward as ak
 import numpy as np
+import argparse
 
-main_input_dir = "/home/quibus/hnl_ntuples_for_mva"
+# Create the parser
+parser = argparse.ArgumentParser(description='Add BDT scores to ntuples')
+
+# Add the arguments
+parser.add_argument('main_input_dir', type=str, help='The main input directory')
+
+# Parse the arguments
+args = parser.parse_args()
+
+main_input_dir = args.main_input_dir
 
 # input files list must find all files in the main_input_dir and subdirectories
 # that end with .root
