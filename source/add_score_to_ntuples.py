@@ -73,7 +73,6 @@ for trained_model_dir in trained_models_dirs:
 print(f"Loaded {my_method} models")
 
 for input_file in input_files_list:
-    break
     assert os.path.isfile(input_file)
     # event number is used later to cross check, make sure it is in the list
     # of variables to load. C_pass_gen_matching is not available in data
