@@ -12,7 +12,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Add BDT scores to ntuples')
 
 # Add the arguments
-parser.add_argument('main_input_dir', type=str, help='The main input directory')
+parser.add_argument('--main_input_dir', type=str, help='The main input directory')
 
 # Parse the arguments
 args = parser.parse_args()
