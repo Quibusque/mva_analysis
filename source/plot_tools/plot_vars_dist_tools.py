@@ -8,25 +8,26 @@ from data_tools.load_data import categorize_data
 
 
 def plot_var_dist(
-    signal,
+    signals,
     backgrounds,
-    signal_weight,
+    signals_weight,
     background_weights,
-    sig_label,
+    sig_labels,
     bkg_labels,
     varname,
     out_dir,
 ):
+    logscale = False
     if "tkIso_R03" in varname:
         plt.xlim(0, 60)
         bins = np.linspace(0, 60, 100)
 
     elif "nValid" in varname:
-        xmax = max(signal)
-        #round xmax up to largest integer
+        xmax = np.amax(signals)
+        # round xmax up to largest integer
         xmax = int(np.ceil(xmax))
         plt.xlim(0, xmax)
-        bins = np.linspace(0, xmax, xmax+1)
+        bins = np.linspace(0, xmax, xmax + 1)
 
     elif "cos" in varname:
         plt.xlim(-1, 1)
@@ -34,11 +35,22 @@ def plot_var_dist(
     elif "charge" in varname:
         plt.xlim(-2, 2)
         bins = np.linspace(-2, 2, 5)
-
+    elif "C_Hnl_vertex_2DSig_BS" in varname:
+        xmin = 0
+        xmax = 450
+        bins = np.linspace(xmin, xmax, 50)
+        plt.xlim(xmin, xmax)
+        logscale = True
     else:
-        #use 1% and 99% percentile to set x limits
-        xmin = np.percentile(signal, 1)
-        xmax = np.percentile(signal, 99)
+        # use 1% and 99% percentile to set x limits
+        xmin = np.percentile(signals[0], 99)
+        xmax = np.percentile(signals[0], 1)
+        for signal in signals:
+            if np.percentile(signal, 1) < xmin:
+                xmin = np.percentile(signal, 1)
+            if np.percentile(signal, 99) > xmax:
+                xmax = np.percentile(signal, 99)
+
         if xmin == xmax:
             xmin -= 1
             xmax += 1
@@ -46,17 +58,6 @@ def plot_var_dist(
         bins = np.linspace(xmin, xmax, 50)
         plt.xlim(xmin, xmax)
 
-
-    plt.hist(
-        signal,
-        bins,
-        weights=signal_weight,
-        alpha=1,
-        density=True,
-        label=sig_label,
-        histtype="step",
-        color="black",
-    )
     plt.hist(
         backgrounds,
         bins,
@@ -65,18 +66,109 @@ def plot_var_dist(
         density=True,
         stacked=True,
         label=bkg_labels,
+        log=logscale,
     )
 
-    tot_sig_weight = np.nansum(signal_weight)
-    tot_bkg_weight = 0
-    for bkg_weight in background_weights:
-        tot_bkg_weight += np.sum(bkg_weight)
+    plt.hist(
+        signals,
+        bins,
+        weights=signals_weight,
+        alpha=1,
+        density=True,
+        label=sig_labels,
+        histtype="step",
+        log=logscale,
+    )
 
     plt.xlabel(varname)
     plt.ylabel("Normalized number of events")
     plt.legend()
     plt.savefig(f"{out_dir}/{varname}.png")
     plt.close()
+
+
+def plot_var_dist_collapse_bkg(
+    signals,
+    backgrounds,
+    signals_weight,
+    background_weights,
+    sig_labels,
+    bkg_labels,
+    varname,
+    out_dir,
+):
+    logscale = False
+    if "tkIso_R03" in varname:
+        plt.xlim(0, 60)
+        bins = np.linspace(0, 60, 100)
+
+    elif "nValid" in varname:
+        xmax = np.amax(signals)
+        # round xmax up to largest integer
+        xmax = int(np.ceil(xmax))
+        plt.xlim(0, xmax)
+        bins = np.linspace(0, xmax, xmax + 1)
+
+    elif "cos" in varname:
+        plt.xlim(-1, 1)
+        bins = np.linspace(-1, 1, 40)
+    elif "charge" in varname:
+        plt.xlim(-2, 2)
+        bins = np.linspace(-2, 2, 5)
+    elif "C_Hnl_vertex_2DSig_BS" in varname:
+        xmin = 0
+        xmax = 400
+        bins = np.linspace(xmin, xmax, 30)
+        plt.xlim(xmin, xmax)
+        logscale = True
+    else:
+        # use 1% and 99% percentile to set x limits
+        xmin = np.percentile(signals[0], 99)
+        xmax = np.percentile(signals[0], 1)
+        for signal in signals:
+            if np.percentile(signal, 1) < xmin:
+                xmin = np.percentile(signal, 1)
+            if np.percentile(signal, 99) > xmax:
+                xmax = np.percentile(signal, 99)
+
+        if xmin == xmax:
+            xmin -= 1
+            xmax += 1
+            bins = np.linspace(xmin, xmax, 3)
+        bins = np.linspace(xmin, xmax, 50)
+        plt.xlim(xmin, xmax)
+
+    backgrounds = np.concatenate(backgrounds)
+    background_weights = np.concatenate(background_weights)
+    bkg_labels = ["low-pt QCD bkg"]
+
+    plt.hist(
+        backgrounds,
+        bins,
+        weights=background_weights,
+        alpha=1,
+        density=True,
+        label=bkg_labels,
+        log=logscale,
+    )
+
+    plt.hist(
+        signals,
+        bins,
+        weights=signals_weight,
+        alpha=1,
+        density=True,
+        label=sig_labels,
+        histtype="step",
+        log=logscale,
+    )
+
+    plt.xlabel(varname)
+    plt.ylabel("Normalized number of events")
+    plt.legend()
+    plt.savefig(f"{out_dir}/{varname}.png")
+    plt.close()
+
 
 # def plot_2d_var_dist(
 #     signal,
@@ -142,6 +234,7 @@ def plot_var_dist(
 #     plt.savefig(f"{out_dir}/{varname1}_vs_{varname2}.png")
 #     plt.close()
 
+
 def load_variables(vars, strees, btrees, weight_name):
     sig = {}
     bkg = {}
@@ -176,53 +269,51 @@ def load_variables(vars, strees, btrees, weight_name):
     return sig, bkg, sig_weight, bkg_weight
 
 
-def load_bkg_data(bkg_trees,good_vars,weight_name, scale_factor_vars):
-
+def load_bkg_data(bkg_trees, good_vars, weight_name, scale_factor_vars):
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
 
-
     category_var = "C_category"
-    category_list = [1,2,3,4,5,6]
+    category_list = [1, 2, 3, 4, 5, 6]
 
-    bkg = {h:[] for h in good_vars+[category_var]}
-    bkg_weight = {h:[] for h in good_vars+[category_var]}
+    bkg = {h: [] for h in good_vars + [category_var]}
+    bkg_weight = {h: [] for h in good_vars + [category_var]}
 
     for bkg_tree in bkg_trees:
         data_bkg = bkg_tree.arrays(good_vars)
         weight_bkg = bkg_tree.arrays(weight_name)
         scale_factor = bkg_tree.arrays(scale_factor_vars)
 
-        #categorize
+        # categorize
         data_bkg = categorize_data(data_bkg, category_list, category_var)
 
         for h in good_vars + [category_var]:
             b_a = data_bkg[h]
             b_w = weight_bkg[weight_name]
             for sf in scale_factor_vars:
-                b_w = b_w*scale_factor[sf]
+                b_w = b_w * scale_factor[sf]
 
-            #broadcast b_w with b_a to match the shape
-            b_w = ak.broadcast_arrays(b_w,b_a)[0]
+            # broadcast b_w with b_a to match the shape
+            b_w = ak.broadcast_arrays(b_w, b_a)[0]
 
-            #if b_a is already flat
+            # if b_a is already flat
             if ak.Array(b_a).ndim == 1:
                 bkg[h].append(ak.to_numpy(b_a))
             else:
                 bkg[h].append(ak.to_numpy(ak.flatten(b_a)))
-            #if b_w is already flat
+            # if b_w is already flat
             if ak.Array(b_w).ndim == 1:
                 bkg_weight[h].append(ak.to_numpy(b_w))
             else:
                 bkg_weight[h].append(ak.to_numpy(ak.flatten(b_w)))
 
-            
     print("Background Variables Loaded!")
     return bkg, bkg_weight
 
+
 def load_sig_data(sig_tree, good_vars, scale_factor_vars):
     category_var = "C_category"
-    category_list = [1,2,3,4,5,6]
+    category_list = [1, 2, 3, 4, 5, 6]
 
     sig = {}
     sig_weight = []
@@ -232,21 +323,21 @@ def load_sig_data(sig_tree, good_vars, scale_factor_vars):
     data_sig = sig_tree.arrays(good_vars)
     scale_factor = sig_tree.arrays(scale_factor_vars)
 
-    #categorize
+    # categorize
     data_sig = categorize_data(data_sig, category_list, category_var)
 
     weight_sig = np.ones_like(scale_factor[scale_factor_vars[0]])
     for sf in scale_factor_vars:
-        weight_sig = weight_sig*scale_factor[sf]
+        weight_sig = weight_sig * scale_factor[sf]
 
     for h in good_vars + [category_var]:
-        #if data_sig[h] is already flat
+        # if data_sig[h] is already flat
         if ak.Array(data_sig[h]).ndim == 1:
             sig[h] = ak.to_numpy(data_sig[h])
         else:
             sig[h] = ak.to_numpy(ak.flatten(data_sig[h]))
 
-    #if weight_sig is already flat
+    # if weight_sig is already flat
     if ak.Array(weight_sig).ndim == 1:
         sig_weight = ak.to_numpy(weight_sig)
     else:
@@ -255,12 +346,13 @@ def load_sig_data(sig_tree, good_vars, scale_factor_vars):
     print("Signal Variables Loaded!")
     return sig, sig_weight
 
+
 def load_bkg_data2(bkg_trees, good_vars, weight_name, scale_factor_vars):
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
 
     category_var = "C_category"
-    category_list = [1,2,3,4,5,6]
+    category_list = [1, 2, 3, 4, 5, 6]
 
     bkg = []
     bkg_weight = []
@@ -270,7 +362,7 @@ def load_bkg_data2(bkg_trees, good_vars, weight_name, scale_factor_vars):
         weight_bkg = bkg_tree.arrays(weight_name)
         scale_factor = bkg_tree.arrays(scale_factor_vars)
 
-        #categorize
+        # categorize
         data_bkg = categorize_data(data_bkg, category_list, category_var)
 
         bkg_dict = {}
@@ -278,21 +370,21 @@ def load_bkg_data2(bkg_trees, good_vars, weight_name, scale_factor_vars):
         # Calculate weights once
         b_w = weight_bkg[weight_name]
         for sf in scale_factor_vars:
-            b_w = b_w*scale_factor[sf]
+            b_w = b_w * scale_factor[sf]
 
         for var in good_vars + [category_var]:
             b_a = data_bkg[var]
 
-            #broadcast b_w with b_a to match the shape
-            b_w = ak.broadcast_arrays(b_w,b_a)[0]
+            # broadcast b_w with b_a to match the shape
+            b_w = ak.broadcast_arrays(b_w, b_a)[0]
 
-            #if b_a is already flat
+            # if b_a is already flat
             if ak.Array(b_a).ndim == 1:
                 bkg_dict[var] = ak.to_numpy(b_a)
             else:
                 bkg_dict[var] = ak.to_numpy(ak.flatten(b_a))
 
-        #if b_w is already flat
+        # if b_w is already flat
         if ak.Array(b_w).ndim == 1:
             bkg_weight.append(ak.to_numpy(b_w))
         else:
