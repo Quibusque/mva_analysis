@@ -2,11 +2,11 @@
 
 
 
-OUT_DIR=results_categories
+OUT_DIR=results_categories_adaboost
 mkdir -p $OUT_DIR
 
 #mass list ("mN1p5" "mN1p0")
-mass_list=("mN1p25")
+mass_list=("mN1p0")
 
 for mass in "${mass_list[@]}"
 do

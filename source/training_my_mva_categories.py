@@ -32,11 +32,18 @@ from mva_tools.mva_response_tools import (
 from mva_tools.mva_plot_tools import plot_corr_matrix
 from my_logging import log_histo_weights, log_weights_and_events
 
-from mva_tools.mva_plot_tools import plot_response_hists, compute_roc, plot_and_save_roc
+from mva_tools.mva_plot_tools import (
+    plot_response_hists,
+    compute_roc,
+    plot_and_save_roc,
+    plot_loss_history_xgb,
+    plot_loss_history_adaboost,
+    plot_loss_history_keras,
+)
 
 
 # methods_list = ["XGBoost", "adaboost", "keras_shallow"]
-methods_list = ["XGBoost"]
+methods_list = ["adaboost"]
 categories = [1, 2, 3, 4, 5, 6]
 rng_seed = 10
 
@@ -94,12 +101,25 @@ if __name__ == "__main__":
     test_fraction = 0.25
     validation_fraction = 0.1
 
+    # ┌───────────────────────────────┐
+    # │ NUMBER OF BINS FOR HISTOGRAMS │
+    # └───────────────────────────────┘
+    n_bins = 30
+
+    # ┌─────────────────┐
+    # │ XGBOOST METRICS │
+    # └─────────────────┘
+
+    xgboost_eval_metric = "rmse"
+    xgboost_objective = "binary:logistic"
+
     # ┌─────────────────────────────────────────┐
     # │ TRAINING (IF ARGUMENT --train IS GIVEN) │
     # └─────────────────────────────────────────┘
     if args.train:
         for sig_tree, sig_label in zip(my_sig_trees, my_sig_labels):
             print(f"Training {sig_label} ...")
+            n_events_dict = {}
             results_dir = f"{out_dir}/{sig_label}"
             if not os.path.exists(results_dir):
                 os.makedirs(results_dir)
@@ -117,6 +137,9 @@ if __name__ == "__main__":
                 validation_fraction=validation_fraction,
                 scale_factor_vars=scale_factor_vars,
             )
+            # update n_events_dict
+            n_events_dict[f"{sig_label}_signal"] = {}
+            n_events_dict[f"{sig_label}_background"] = {}
             # TRAINING
             for category, data in zip(categories, full_data):
                 category_dir = f"{results_dir}/cat_{category}"
@@ -142,7 +165,6 @@ if __name__ == "__main__":
                     y_test,
                     w_train,
                     w_test,
-                    sig_label,
                     category_dir,
                     y_val=y_val,
                     w_val=w_val,
@@ -152,13 +174,23 @@ if __name__ == "__main__":
                 x_train_bkg = x_train[y_train == 0]
                 x_test_sig = x_test[y_test == 1]
                 x_test_bkg = x_test[y_test == 0]
+                x_val_sig = x_val[y_val == 1]
+                x_val_bkg = x_val[y_val == 0]
                 # corresponding weights
                 w_train_sig = w_train[y_train == 1]
                 w_train_bkg = w_train[y_train == 0]
                 w_test_sig = w_test[y_test == 1]
                 w_test_bkg = w_test[y_test == 0]
 
-                # PLOT CORRELATION MATRIX
+                # update n_events_dict
+                n_events_dict[f"{sig_label}_signal"][f"cat_{category}"] = (
+                    len(x_train_sig) + len(x_test_sig) + len(x_val_sig)
+                )
+                n_events_dict[f"{sig_label}_background"][f"cat_{category}"] = (
+                    len(x_train_bkg) + len(x_test_bkg) + len(x_val_bkg)
+                )
+
+                # PLOT CORRELATION MATRIX CATEGORY
                 plot_corr_matrix(
                     x_train_sig, x_test_sig, training_vars, category_dir, "sig"
                 )
@@ -173,13 +205,20 @@ if __name__ == "__main__":
                     w_train,
                     methods_list,
                     category_dir,
+                    xgboost_eval_metric=xgboost_eval_metric,
+                    xgboost_objective=xgboost_objective,
                     x_val=x_val,
                     y_val=y_val,
                     w_val=w_val,
+                    n_sig_val=len(x_val_sig),
                 )
                 print(f"Training category {category} complete!")
             print(f"Training {sig_label} complete!")
+            # save information about number of events to .csv
+            n_events_df = pd.DataFrame(n_events_dict)
+            n_events_df.to_csv(f"{out_dir}/{sig_label}_n_events.csv", index=True)
         print(f"Training complete!")
+
     # ┌─────────────────────────────────────────────────────────────────────────────────────┐
     # │ APPLY MODEL TO TEST SAMPLE AND GET VARIOUS RESULTS (IF ARGUMENT --results IS GIVEN) │
     # └─────────────────────────────────────────────────────────────────────────────────────┘
@@ -256,7 +295,7 @@ if __name__ == "__main__":
                         w_test_sig,
                         w_test_bkg,
                         normalize=True,
-                        n_bins=40,
+                        n_bins=n_bins,
                     )
 
                     # print sum of all histograms to check normalization
@@ -307,7 +346,9 @@ if __name__ == "__main__":
     # └────────────┘
     if args.plots:
         print(f"Making plots ...")
+        best_cuts = {}
         for sig_label in my_sig_labels:
+            best_cuts[sig_label] = {}
             print(f"Making plots for {sig_label} ...")
             results_dir = f"{out_dir}/{sig_label}"
             for category in categories:
@@ -316,7 +357,6 @@ if __name__ == "__main__":
                 plots_dir = f"{category_dir}/plots"
                 if not os.path.exists(plots_dir):
                     os.makedirs(plots_dir)
-                # ROC
                 roc_data = []
                 wp = None
                 for method in methods_list:
@@ -351,9 +391,7 @@ if __name__ == "__main__":
                     test_bkg_hist = np.array(df["test_bkg_hist"])
                     significance = np.array(df["sig"])
 
-
-
-                    method_wp = plot_response_hists(
+                    method_wp, score_cut = plot_response_hists(
                         train_sig_hist,
                         train_bkg_hist,
                         test_sig_hist,
@@ -367,12 +405,49 @@ if __name__ == "__main__":
                         significance=significance,
                     )
                     print(f"Working point for {method} is {method_wp}")
+
+                    # ┌────────────────────┐
+                    # │ BEST STUFF XGBOOST │
+                    # └────────────────────┘
                     if method == "XGBoost":
                         wp = method_wp
+                        best_cuts[sig_label][category] = score_cut
+
+                    # ┌────────────────────────────┐
+                    # │ EPOCHS TRAINING LOSS PLOTS │
+                    # └────────────────────────────┘
+                    if method == "XGBoost":
+                        evals_df = pd.read_csv(
+                            f"{category_dir}/{method}_model_evals.csv"
+                        )
+                        plot_loss_history_xgb(
+                            evals_df, eval_metric=xgboost_eval_metric, out_dir=plots_dir
+                        )
+                    elif method == "adaboost":
+                        evals_df = pd.read_csv(
+                            f"{category_dir}/{method}_model_evals.csv"
+                        )
+                        plot_loss_history_adaboost(evals_df, out_dir=plots_dir)
+                    elif method == "keras_shallow":
+                        evals_df = pd.read_csv(
+                            f"{category_dir}/{method}_model_evals.csv"
+                        )
+                        plot_loss_history_keras(history=evals_df, out_dir=plots_dir)
+
                 plot_and_save_roc(
-                    roc_data, methods_list, sig_label, category, plots_dir, working_point=wp
+                    roc_data,
+                    methods_list,
+                    sig_label,
+                    category,
+                    plots_dir,
+                    working_point=wp,
                 )
+
             print(f"Making plots for {sig_label} complete!")
+
+            # save best cuts to .json
+            with open(f"{out_dir}/best_cuts.json", "w") as f:
+                json.dump(best_cuts, f, indent=4)
         print(f"Making plots complete!")
     if args.data_test:
         print(f"Testing on data ...")
@@ -420,7 +495,7 @@ if __name__ == "__main__":
                         weight,
                         weight,
                         normalize=True,
-                        n_bins=40,
+                        n_bins=n_bins,
                     )
                     out_dir = f"{category_dir}/test_response_hist"
                     if not os.path.exists(out_dir):

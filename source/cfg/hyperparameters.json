@@ -1,36 +1,33 @@
 {
     "keras_shallow": {
-        "epochs": 10,
+        "epochs": 50,
         "batch_size": 64,
         "hidden_layers": [
             64
         ],
-        "early_stopping_rounds": 2,
-        "filename_model_new": "TMVA_keras_models/keras_shallow_model_new_TMVA.h5",
-        "filename_trained_model_new": "TMVA_keras_models/keras_shallow_model_new_TMVA_trained_model.h5",
-        "filename_model_old": "TMVA_keras_models/keras_shallow_model_old_TMVA.h5",
-        "filename_trained_model_old": "TMVA_keras_models/keras_shallow_model_old_TMVA_trained_model.h5"
-    },
+        "early_stopping_rounds": 5,
+        "learning_rate": 0.0001
+ },
     "keras_deep": {
-        "epochs": 10,
+        "epochs": 20,
         "batch_size": 64,
         "hidden_layers": [
             64,
             128,
             16
         ],
-        "early_stopping_rounds": 2
+        "early_stopping_rounds": 4
     },
     "XGBoost": {
         "max_depth": 3,
-        "n_estimators": 50,
+        "n_estimators": 100,
         "early_stopping_rounds": 10
     },
     "adaboost": {
         "max_depth": 3,
         "min_n_estimators": 1,
-        "n_estimators": 30,
-        "min_samples_leaf": 0.025,
-        "early_stopping_rounds": 3
+        "n_estimators": 50,
+        "early_stopping_rounds": 3,
+        "learning_rate": 0.08
     }
 }

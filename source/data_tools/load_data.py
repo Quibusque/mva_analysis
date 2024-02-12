@@ -327,14 +327,7 @@ def get_categorized_data(
             data_sig.pop(var)
             data_bkg.pop(var)
     data_sig.pop(gen_matching_var)
-    # find the index of the category_var in data_sig.keys() and data_bkg.keys()
-    # this is needed later to remove the category_var column
-    C_cat_index_sig = list(data_sig.keys()).index(category_var)
-    C_cat_index_bkg = list(data_bkg.keys()).index(category_var)
-    print(f"C_cat_index_sig = {C_cat_index_sig}")
-    print(f"C_cat_index_bkg = {C_cat_index_bkg}")
-    print(f"length of arrays in data_sig = {[len(data_sig[key]) for key in data_sig.keys()]}")
-    print(f"length of arrays in data_bkg = {[len(data_bkg[key]) for key in data_bkg.keys()]}")
+
     #take first length and find vars with different length
     first_length_sig = len(data_sig[list(data_sig.keys())[0]])
     first_length_bkg = len(data_bkg[list(data_bkg.keys())[0]])
@@ -519,11 +512,6 @@ def get_categorized_test_data(tree,training_vars,
     for var in additional_vars:
         if var not in training_vars:
             data.pop(var)
-    # find the index of the category_var in data.keys()
-    # this is needed later to remove the category_var column
-    C_cat_index = list(data.keys()).index(category_var)
-    print(f"C_cat_index = {C_cat_index}")
-    print(f"length of arrays in data = {[len(data[key]) for key in data.keys()]}")
     #take first length and find vars with different length
     first_length = len(data[list(data.keys())[0]])
     for key in data.keys():

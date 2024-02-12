@@ -3,27 +3,242 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import awkward as ak
 import uproot
+import mplhep as hep
+import itertools
+
+hep.style.use("CMS")
 
 from data_tools.load_data import categorize_data
 
+vars_name_dict = {
+    "C_Ds_pt": "$p_T(D_s)$",
+    "C_Ds_vertex_cos2D": "$D_s$ vertex cos(2D)",
+    "C_Ds_vertex_prob": "$D_s$ vertex prob",
+    "C_Hnl_vertex_2DSig_BS": "$L_{xy} / \sigma$",
+    "C_Hnl_vertex_cos2D": "$N$ vertex cos(2D)",
+    "C_Hnl_vertex_cos3D": "$N$ vertex cos(3D)",
+    "C_Hnl_vertex_prob": "$N$ vertex prob",
+    "C_mu_Ds_BS_ips_xy": "$\mu_{D}$ IPS xy",
+    "C_mu_Ds_pt": "$p_T(\mu_{D})$",
+    "C_mu_Ds_nValidTrackerHits": "$\mu_{D}$ tracker hits",
+    "C_mu_Ds_nValidPixelHits": "$\mu_{D}$ pixel hits",
+    "C_mu_Ds_tkIso_R03": "$\mu_{D}$ isolation",
+    "C_mu_Hnl_BS_ips_xy": "$\mu_{H}$ IPS xy",
+    "C_mu_Hnl_pt": "$p_T(\mu_{H})$",
+    "C_mu_Hnl_nValidTrackerHits": "$\mu_{N}$ tracker hits",
+    "C_mu_Hnl_nValidPixelHits": "$\mu_{N}$ pixel hits",
+    "C_mu_Hnl_tkIso_R03": "$\mu_{N}$ isolation",
+    "C_pi_BS_ip_xy": "$\pi$ IPS xy",
+    "C_pi_BS_ips_xy": "$\pi$ IPS xy",
+    "C_pi_pt": "$p_T(\pi)$",
+    "C_pi_nValidTrackerHits": "$\pi$ tracker hits",
+    "C_pi_nValidPixelHits": "$\pi$ pixel hits",
+    "C_mu1mu2_dr": "$\Delta R (\mu_{H}, \mu_{D})$",
+    "C_mu2pi_dr": "$\Delta R (\mu_{D}, \pi)$",
+    "C_pass_gen_matching": "Pass gen matching",
+    "C_mu_Hnl_charge": "$\mu_{N}$ charge",
+    "C_mu_Ds_charge": "$\mu_{D}$ charge",
+    "C_category": "Category",
+}
 
-def plot_var_dist(
-    signals,
+vars_unit_name_dict = {
+    "C_Ds_pt": "[GeV]",
+    "C_Ds_vertex_cos2D": "",
+    "C_Ds_vertex_prob": "",
+    "C_Hnl_vertex_2DSig_BS": "",
+    "C_Hnl_vertex_cos2D": "",
+    "C_Hnl_vertex_cos3D": "",
+    "C_Hnl_vertex_prob": "",
+    "C_mu_Ds_BS_ips_xy": "",
+    "C_mu_Ds_pt": "[GeV]",
+    "C_mu_Ds_nValidTrackerHits": "",
+    "C_mu_Ds_nValidPixelHits": "",
+    "C_mu_Ds_tkIso_R03": "",
+    "C_mu_Hnl_BS_ips_xy": "",
+    "C_mu_Hnl_pt": "[GeV]",
+    "C_mu_Hnl_nValidTrackerHits": "",
+    "C_mu_Hnl_nValidPixelHits": "",
+    "C_mu_Hnl_tkIso_R03": "",
+    "C_pi_BS_ip_xy": "[cm]",
+    "C_pi_BS_ips_xy": "",
+    "C_pi_pt": "[GeV]",
+    "C_pi_nValidTrackerHits": "",
+    "C_pi_nValidPixelHits": "",
+    "C_mu1mu2_dr": "",
+    "C_mu2pi_dr": "",
+    "C_pass_gen_matching": "",
+    "C_mu_Hnl_charge": "",
+    "C_mu_Ds_charge": "",
+    "C_category": "",
+}
+
+sig_label_dict = {
+    "mN1p0_ctau10": "$m_{N} = 1 GeV, c\\tau = 10 mm$",
+    "mN1p0_ctau100": "$m_{N} = 1 GeV, c\\tau = 100 mm$",
+    "mN1p0_ctau1000": "$m_{N} = 1 GeV, c\\tau = 1000 mm$",
+    "mN1p25_ctau10": "$m_{N} = 1.25 GeV, c\\tau = 10 mm$",
+    "mN1p25_ctau100": "$m_{N} = 1.25 GeV, c\\tau = 100 mm$",
+    "mN1p25_ctau1000": "$m_{N} = 1.25 GeV, c\\tau = 1000 mm$",
+    "mN1p5_ctau10": "$m_{N} = 1.5 GeV, c\\tau = 10 mm$",
+    "mN1p5_ctau100": "$m_{N} = 1.5 GeV, c\\tau = 100 mm$",
+    "mN1p5_ctau1000": "$m_{N} = 1.5 GeV, c\\tau = 1000 mm$",
+    "mN1p8_ctau10": "$m_{N} = 1.8 GeV, c\\tau = 10 mm$",
+    "mN1p8_ctau100": "$m_{N} = 1.8 GeV, c\\tau = 100 mm$",
+    "mN1p8_ctau1000": "$m_{N} = 1.8 GeV, c\\tau = 1000 mm$",
+}
+
+bkg_label_dict = {
+    "QCD_Pt-20To30": "QCD $20 < p_T < 30$",
+    "QCD_Pt-30To50": "QCD $30 < p_T < 50$",
+    "QCD_Pt-50To80": "QCD $50 < p_T < 80$",
+    "QCD_Pt-80To120": "QCD $80 < p_T < 120$",
+    "QCD_Pt-120To170": "QCD $120 < p_T < 170$",
+    "QCD_Pt-170To300": "QCD $170 < p_T < 300$"
+}
+
+category_dict = {
+    1: "lowDisp_SS",
+    2: "mediumDisp_SS",
+    3: "highDisp_SS",
+    4: "lowDisp_OS",
+    5: "mediumDisp_OS",
+    6: "highDisp_OS"
+}
+
+
+# def plot_var_dist_full_bkg(
+#     signals,
+#     backgrounds,
+#     signals_weight,
+#     background_weights,
+#     sig_labels,
+#     bkg_labels,
+#     varname,
+#     out_dir,
+# ):
+#     # Define color and linestyle iterators
+#     colors = ["black"]
+#     linestyles = ["-", ":", "--", "-."]
+#     color_iterator = itertools.cycle(colors)
+#     linestyle_iterator = itertools.cycle(linestyles)
+
+#     logscale = False
+#     if "tkIso_R03" in varname:
+#         plt.xlim(0, 60)
+#         bins = np.linspace(0, 60, 100)
+
+#     elif "nValid" in varname:
+#         xmax = np.amax(signals)
+#         # round xmax up to largest integer
+#         xmax = int(np.ceil(xmax))
+#         plt.xlim(0, xmax)
+#         bins = np.linspace(0, xmax, xmax + 1)
+
+#     elif "cos" in varname:
+#         plt.xlim(-1, 1)
+#         bins = np.linspace(-1, 1, 40)
+#     elif "charge" in varname:
+#         plt.xlim(-2, 2)
+#         bins = np.linspace(-2, 2, 5)
+#     elif "C_Hnl_vertex_2DSig_BS" in varname:
+#         xmin = 0
+#         xmax = 450
+#         bins = np.linspace(xmin, xmax, 50)
+#         plt.xlim(xmin, xmax)
+#         logscale = True
+#     else:
+#         if ak.Array(signals).ndim != 1:
+#             # use 1% and 99% percentile to set x limits
+#             xmin = np.percentile(signals[0], 99)
+#             xmax = np.percentile(signals[0], 1)
+#             for signal in signals:
+#                 if np.percentile(signal, 1) < xmin:
+#                     xmin = np.percentile(signal, 1)
+#                 if np.percentile(signal, 99) > xmax:
+#                     xmax = np.percentile(signal, 99)
+
+#             if xmin == xmax:
+#                 xmin -= 1
+#                 xmax += 1
+#                 bins = np.linspace(xmin, xmax, 3)
+#             bins = np.linspace(xmin, xmax, 50)
+#             plt.xlim(xmin, xmax)
+#         else:
+#             xmin = np.percentile(signals, 1)
+#             xmax = np.percentile(signals, 99)
+#             bins = np.linspace(xmin, xmax, 50)
+#             plt.xlim(xmin, xmax)
+
+#     bkg_hists = []
+#     for background, background_weight, bkg_label in zip(
+#         backgrounds, background_weights, bkg_labels
+#     ):
+#         bkg_hist, bin_edges = np.histogram(
+#             background, bins, weights=background_weight
+#         )
+#         bkg_hists.append(bkg_hist)
+#     hep.histplot(
+#         bkg_hists,
+#         bins=bin_edges,
+#         alpha=0.5,
+#         density=True,
+#         stack=True,
+#         label=[bkg_label_dict[bkg_label] for bkg_label in bkg_labels],
+#         histtype="fill",
+#     )
+#     sig_hist, bin_edges = np.histogram(signals, bins, weights=signals_weight)
+#     hep.histplot(
+#         sig_hist,
+#         bins=bin_edges,
+#         alpha=1,
+#         density=True,
+#         label=sig_label_dict[sig_labels],
+#         histtype="step",
+#         color=next(color_iterator),
+#         linestyle=next(linestyle_iterator),
+#         lw=2,
+#     )
+#     # else:
+#     #     for s, s_label, s_w in zip(signals, sig_labels, signals_weight):
+#     #         sig_hist, bin_edges = np.histogram(s, bins, weights=s_w)
+#     #         hep.histplot(
+#     #             sig_hist,
+#     #             bins=bin_edges,
+#     #             alpha=1,
+#     #             density=True,
+#     #             label=sig_label_dict[s_label],
+#     #             histtype="step",
+#     #             color=next(color_iterator),
+#     #             linestyle=next(linestyle_iterator),
+#     #             lw=2,
+#     #         )
+
+#     plt.xlabel(vars_name_dict[varname])
+#     plt.ylabel("Normalized number of events")
+#     plt.title(f"{vars_name_dict[varname]} Distribution")
+#     plt.legend()
+#     plt.savefig(f"{out_dir}/{varname}.png")
+#     plt.close()
+
+
+def plot_var_dist_one_sig(
+    signal,
     backgrounds,
-    signals_weight,
+    signal_weight,
     background_weights,
     sig_labels,
     bkg_labels,
     varname,
     out_dir,
+    category = None
 ):
     logscale = False
     if "tkIso_R03" in varname:
         plt.xlim(0, 60)
-        bins = np.linspace(0, 60, 100)
+        bins = np.linspace(0, 60, 50)
 
     elif "nValid" in varname:
-        xmax = np.amax(signals)
+        xmax = np.amax(signal)
         # round xmax up to largest integer
         xmax = int(np.ceil(xmax))
         plt.xlim(0, xmax)
@@ -36,92 +251,107 @@ def plot_var_dist(
         plt.xlim(-2, 2)
         bins = np.linspace(-2, 2, 5)
     elif "C_Hnl_vertex_2DSig_BS" in varname:
-        xmin = 0
-        xmax = 450
-        bins = np.linspace(xmin, xmax, 50)
-        plt.xlim(xmin, xmax)
-        logscale = True
-    else:
-        # use 1% and 99% percentile to set x limits
-        xmin = np.percentile(signals[0], 99)
-        xmax = np.percentile(signals[0], 1)
-        for signal in signals:
-            if np.percentile(signal, 1) < xmin:
-                xmin = np.percentile(signal, 1)
-            if np.percentile(signal, 99) > xmax:
-                xmax = np.percentile(signal, 99)
-
-        if xmin == xmax:
-            xmin -= 1
-            xmax += 1
-            bins = np.linspace(xmin, xmax, 3)
-        bins = np.linspace(xmin, xmax, 50)
-        plt.xlim(xmin, xmax)
-
-    plt.hist(
-        backgrounds,
-        bins,
-        weights=background_weights,
-        alpha=0.5,
-        density=True,
-        stacked=True,
-        label=bkg_labels,
-        log=logscale,
-    )
-
-    plt.hist(
-        signals,
-        bins,
-        weights=signals_weight,
-        alpha=1,
-        density=True,
-        label=sig_labels,
-        histtype="step",
-        log=logscale,
-    )
-
-    plt.xlabel(varname)
-    plt.ylabel("Normalized number of events")
-    plt.legend()
-    plt.savefig(f"{out_dir}/{varname}.png")
-    plt.close()
-
-
-def plot_var_dist_collapse_bkg(
-    signals,
-    backgrounds,
-    signals_weight,
-    background_weights,
-    sig_labels,
-    bkg_labels,
-    varname,
-    out_dir,
-):
-    logscale = False
-    if "tkIso_R03" in varname:
-        plt.xlim(0, 60)
-        bins = np.linspace(0, 60, 100)
-
-    elif "nValid" in varname:
-        xmax = np.amax(signals)
-        # round xmax up to largest integer
-        xmax = int(np.ceil(xmax))
-        plt.xlim(0, xmax)
-        bins = np.linspace(0, xmax, xmax + 1)
-
-    elif "cos" in varname:
-        plt.xlim(-1, 1)
-        bins = np.linspace(-1, 1, 40)
-    elif "charge" in varname:
-        plt.xlim(-2, 2)
-        bins = np.linspace(-2, 2, 5)
-    elif "C_Hnl_vertex_2DSig_BS" in varname:
-        xmin = 0
-        xmax = 400
+        xmin = np.percentile(signal, 1)
+        xmax = np.percentile(signal, 90)
         bins = np.linspace(xmin, xmax, 30)
         plt.xlim(xmin, xmax)
         logscale = True
     else:
+        xmin = np.percentile(signal, 1)
+        xmax = np.percentile(signal, 99)
+        bins = np.linspace(xmin, xmax, 50)
+        plt.xlim(xmin, xmax)
+
+
+    backgrounds = np.concatenate(backgrounds)
+    background_weights = np.concatenate(background_weights)
+    bkg_labels = ["QCD bkg"]
+
+    bkg_hist, bin_edges = np.histogram(backgrounds, bins, weights=background_weights)
+    hep.histplot(
+        bkg_hist,
+        bins=bin_edges,
+        alpha=0.5,
+        density=True,
+        label=bkg_labels,
+        histtype="fill",
+        color="tab:blue",
+    )
+    sig_hist, bin_edges = np.histogram(signal, bins, weights=signal_weight)
+    hep.histplot(
+        sig_hist,
+        bins=bin_edges,
+        alpha=0.5,
+        density=True,
+        label=sig_label_dict[sig_labels],
+        histtype="fill",
+        color="tab:orange",
+        lw=2,
+    )
+    # Set y-axis to logarithmic scale
+    if logscale:
+        plt.yscale('log')
+
+    plt.xlabel(vars_name_dict[varname] + vars_unit_name_dict[varname])
+    plt.ylabel("Normalized number of events")
+    if category:
+        plt.title(f"{vars_name_dict[varname]} Distribution {category_dict[category]}")
+    else:
+        plt.title(f"{vars_name_dict[varname]} Distribution")
+    plt.legend()
+    plt.savefig(f"{out_dir}/{varname}.png")
+    plt.close()
+
+def plot_var_dist_more_sig(
+    signals,
+    backgrounds,
+    signals_weight,
+    background_weights,
+    sig_labels,
+    bkg_labels,
+    varname,
+    out_dir,
+    category = None
+):
+    # Define color and linestyle iterators
+    linestyles = ["-", ":", "--", "-."]
+    linestyle_iterator = itertools.cycle(linestyles)
+
+    logscale = False
+    if "tkIso_R03" in varname:
+        plt.xlim(0, 60)
+        bins = np.linspace(0, 60, 50)
+
+    elif "nValid" in varname:
+        xmax = np.amax(signals)
+        # round xmax up to largest integer
+        xmax = int(np.ceil(xmax))
+        plt.xlim(0, xmax)
+        bins = np.linspace(0, xmax, xmax + 1)
+
+    elif "cos" in varname:
+        plt.xlim(-1, 1)
+        bins = np.linspace(-1, 1, 40)
+    elif "charge" in varname:
+        plt.xlim(-2, 2)
+        bins = np.linspace(-2, 2, 5)
+    elif "C_Hnl_vertex_2DSig_BS" in varname:
+        xmin = np.percentile(signals[0], 90)
+        xmax = -1
+        for signal in signals:
+            if np.percentile(signal, 1) < xmin:
+                xmin = np.percentile(signal, 1)
+            if np.percentile(signal, 99) > xmax:
+                xmax = np.percentile(signal, 99)
+
+        if xmin == xmax:
+            xmin -= 1
+            xmax += 1
+            bins = np.linspace(xmin, xmax, 3)
+        bins = np.linspace(xmin, xmax, 40)
+        plt.xlim(xmin, xmax)
+        logscale = True
+    else:
         # use 1% and 99% percentile to set x limits
         xmin = np.percentile(signals[0], 99)
         xmax = np.percentile(signals[0], 1)
@@ -138,33 +368,45 @@ def plot_var_dist_collapse_bkg(
         bins = np.linspace(xmin, xmax, 50)
         plt.xlim(xmin, xmax)
 
+
     backgrounds = np.concatenate(backgrounds)
     background_weights = np.concatenate(background_weights)
-    bkg_labels = ["low-pt QCD bkg"]
+    bkg_labels = ["QCD bkg"]
 
-    plt.hist(
-        backgrounds,
-        bins,
-        weights=background_weights,
-        alpha=1,
+    bkg_hist, bin_edges = np.histogram(backgrounds, bins, weights=background_weights)
+    hep.histplot(
+        bkg_hist,
+        bins=bin_edges,
+        alpha=0.5,
         density=True,
         label=bkg_labels,
-        log=logscale,
+        histtype="fill",
     )
 
-    plt.hist(
-        signals,
-        bins,
-        weights=signals_weight,
-        alpha=1,
-        density=True,
-        label=sig_labels,
-        histtype="step",
-        log=logscale,
-    )
+    for s, s_label, s_w in zip(signals, sig_labels, signals_weight):
+        sig_hist, bin_edges = np.histogram(s, bins, weights=s_w)
+        hep.histplot(
+            sig_hist,
+            bins=bin_edges,
+            alpha=1,
+            density=True,
+            label=sig_label_dict[s_label],
+            histtype="step",
+            color="black",
+            linestyle=next(linestyle_iterator),
+            lw=2,
+        )
+    
+    # Set y-axis to logarithmic scale
+    if logscale:
+        plt.yscale('log')
 
-    plt.xlabel(varname)
+    plt.xlabel(vars_name_dict[varname] + vars_unit_name_dict[varname])
     plt.ylabel("Normalized number of events")
+    if category:
+        plt.title(f"{vars_name_dict[varname]} Distribution {category_dict[category]}")
+    else:
+        plt.title(f"{vars_name_dict[varname]} Distribution")
     plt.legend()
     plt.savefig(f"{out_dir}/{varname}.png")
     plt.close()
@@ -347,7 +589,7 @@ def load_sig_data(sig_tree, good_vars, scale_factor_vars):
     return sig, sig_weight
 
 
-def load_bkg_data2(bkg_trees, good_vars, weight_name, scale_factor_vars):
+def load_bkg_data(bkg_trees, good_vars, weight_name, scale_factor_vars):
     if "C_pass_gen_matching" in good_vars:
         good_vars.remove("C_pass_gen_matching")
 
