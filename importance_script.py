@@ -1,6 +1,36 @@
 import numpy as np
 import pandas as pd
 
+vars_name_dict = {
+    "C_Ds_pt":"$p_T(D_s)$",
+    "C_Ds_vertex_cos2D":"$\cos\\theta(2D) (D_s)$",
+    "C_Ds_vertex_prob":"$D_s$ vertex prob",
+    "C_Hnl_vertex_2DSig_BS":"$L_{xy} / \sigma$",
+    "C_Hnl_vertex_cos2D":"$\cos\\theta(2D) (N)$",
+    "C_Hnl_vertex_cos3D":"$\cos\\theta(3D) (N)$",
+    "C_Hnl_vertex_prob":"$N$ vertex prob",
+    "C_mu_Ds_BS_ips_xy":"$\mu_{D}$ IPS xy",
+    "C_mu_Ds_pt":"$p_T(\mu_{D})$",
+    "C_mu_Ds_nValidTrackerHits":"$\mu_{D}$ tracker hits",
+    "C_mu_Ds_nValidPixelHits":"$\mu_{D}$ pixel hits",
+    "C_mu_Ds_tkIso_R03":"$\mu_{D}$ isolation",
+    "C_mu_Hnl_BS_ips_xy":"$\mu_{H}$ IPS xy",
+    "C_mu_Hnl_pt":"$p_T(\mu_{H})$",
+    "C_mu_Hnl_nValidTrackerHits":"$\mu_{N}$ tracker hits",
+    "C_mu_Hnl_nValidPixelHits":"$\mu_{N}$ pixel hits",
+    "C_mu_Hnl_tkIso_R03":"$\mu_{N}$ isolation",
+    "C_pi_BS_ip_xy":"$\pi$ IPS xy",
+    "C_pi_BS_ips_xy":"$\pi$ IPS xy",
+    "C_pi_pt":"$p_T(\pi)$",
+    "C_pi_nValidTrackerHits":"$\pi$ tracker hits",
+    "C_pi_nValidPixelHits":"$\pi$ pixel hits",
+    "C_mu1mu2_dr":"$\Delta R (\mu_{H}, \mu_{D})$",
+    "C_mu2pi_dr":"$\Delta R (\mu_{D}, \pi)$",
+    "C_pass_gen_matching":"Pass gen matching",
+    "C_mu_Hnl_charge":"$\mu_{N}$ charge",
+    "C_mu_Ds_charge":"$\mu_{D}$ charge"
+}
+
 main_dir = "results_categories_test/myMVA"
 label_list = ["mN1p0_ctau10", "mN1p25_ctau10", "mN1p5_ctau10", "mN1p8_ctau10"]
 n_top_variables = 4
@@ -31,10 +61,12 @@ for label in label_list:
     full_vars = list(set(full_vars))
 print(f"There are {len(full_vars)} variables in the top {n_top_variables} for all mass hypotheses and categories:")
 for var in full_vars:
-    print(var)
+    print(vars_name_dict[var])
 # top_variables = []
 # threshold = 0.05
-
+#┌───────────────────────┐
+#│ VAR IMPORTANCE TABLES │
+#└───────────────────────┘
 # # Create a dictionary to store the highest importance value for each variable
 # variable_importance = {}
 
