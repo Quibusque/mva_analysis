@@ -201,9 +201,9 @@ def build_and_train_adaboost_model(
         best_bdt = None
         n_estimators = min_n_estimators
         if n_sig_val < 100:
-            learning_rate = learning_rate*0.2
+            learning_rate = learning_rate*0.3
         elif n_sig_val < 200:
-            learning_rate = learning_rate*0.5
+            learning_rate = learning_rate*0.8
 
         while n_estimators <= max_estimators:
 
@@ -251,16 +251,17 @@ def build_and_train_adaboost_model(
                     f"Early stopping at n_estimators={best_n_estimators} with loss={best_loss}"
                 )
                 break
-            if improvMargin > 0.01:
-                n_estimators += 8
-            elif improvMargin > 0.002:
-                n_estimators += 6
-            elif improvMargin > 0.0005:
-                n_estimators += 4
-            elif improvMargin > 0.0001:
-                n_estimators += 2
-            else:
-                n_estimators += 1
+            # if improvMargin > 0.01:
+            #     n_estimators += 5
+            # elif improvMargin > 0.002:
+            #     n_estimators += 4
+            # elif improvMargin > 0.0005:
+            #     n_estimators += 3
+            # elif improvMargin > 0.0001:
+            #     n_estimators += 2
+            # else:
+            #     n_estimators += 1
+            n_estimators += 1
         # HISTORY OF LOSS
         evals_df = pd.DataFrame({"val_logloss": val_loss_history, 
                                  "train_logloss": training_loss_history,
